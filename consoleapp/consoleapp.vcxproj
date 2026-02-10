@@ -131,6 +131,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="consoleapp.cpp" />
+    <ClCompile Include="utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\sysinfo\sysinfo.vcxproj">
+      <Project>{21186c04-59ab-46d2-8ba2-db8496523ff1}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

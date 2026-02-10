@@ -10,7 +10,7 @@ int main()
     sysinfo::machine machine;
     int i = 0;
 
-    sysinfo::configure_terminal();
+    configure_terminal();
 
     if (!sysinfo::init()) {
         std::wcerr << "[sysinfo::init ERROR] " << sysinfo::get_last_error() << std::endl;
