@@ -45,11 +45,11 @@ def token_required(secret_key:str=None):
             # Obtém o token do cabeçalho da requisição
             auth_header = request.headers.get("Authorization")
             if not auth_header:
-                return jsonify(message="Token é necessário!"), 403
+                return jsonify(success=False, msg="Token é necessário!"), 400
 
             parts = auth_header.split()
             if parts[0].lower() != 'bearer' or len(parts) != 2:
-                return jsonify(message="Cabeçalho de autorização malformado!"), 401
+                return jsonify(success=False, msg="Cabeçalho de autorização malformado!"), 400
             token = parts[1]
 
             try:
@@ -57,10 +57,10 @@ def token_required(secret_key:str=None):
                 decoded = jwt.decode(token, secret_key, algorithms=["HS256"])
                 user = decoded['user']
             except jwt.ExpiredSignatureError:
-                return jsonify(message="Token expirado! Faça login novamente."), 401
+                return jsonify(success=False, msg="Token expirado! Faça login novamente."), 401
             
             except jwt.InvalidTokenError:
-                return jsonify(message="Token inválido!"), 403
+                return jsonify(success=False, msg="Token inválido!"), 400
             
             return func(user, *args, **kwargs)
         return wrapper
