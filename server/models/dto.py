@@ -13,5 +13,4 @@ from dataclasses import dataclass
 class UserDTO:
     id: str
     name: str
-    email: str
-    username: str
+    cpf: str

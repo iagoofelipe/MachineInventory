@@ -15,10 +15,9 @@ from models.dto import UserDTO
 db = SQLAlchemy()
 
 class UserModel(db.Model):
-    id = db.Column(db.String(50), primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(50), nullable=False)
-    username = db.Column(db.String(100), unique=True, nullable=False)
+    id:int = db.Column(db.String(50), primary_key=True)
+    name:str = db.Column(db.String(100), nullable=False)
+    cpf:str = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
@@ -34,6 +33,5 @@ class UserModel(db.Model):
         return {
             'id': self.id,
             'name': self.name, 
-            'email': self.email, 
-            'username': self.username
-        } if as_dict else UserDTO(self.id, self.name, self.email, self.username)
+            'cpf': self.cpf, 
+        } if as_dict else UserDTO(self.id, self.name, self.cpf)
