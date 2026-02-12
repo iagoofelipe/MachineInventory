@@ -42,8 +42,10 @@ CREATE TABLE machine_program (
 
 CREATE TABLE machine_disk (
     id TEXT PRIMARY KEY NOT NULL,
-    freeSpace INTEGER,
+    name TEXT,
+    serialNumber TEXT,
     size INTEGER,
+    model TEXT,
     machineId TEXT NOT NULL,
     FOREIGN KEY(machineId) REFERENCES machine(id)
 );

@@ -6,31 +6,9 @@
 # Autor: Iago Carvalho
 #############################################################
 
-import os, secrets, jwt
-import logging as log
-from configparser import ConfigParser
+import os, jwt, re
 from flask import jsonify, request
 from functools import wraps
-
-from tools.consts import FILE_CONFIG
-
-def get_secret_key():
-    if 'SECRET_KEY' in os.environ:
-        return os.environ['SECRET_KEY']
-
-    config = ConfigParser()
-    
-    if os.path.exists(FILE_CONFIG):
-        config.read(FILE_CONFIG)
-
-    if config.has_option('flask', 'SECRET_KEY'):
-        key = os.environ['SECRET_KEY'] = config.get('flask', 'SECRET_KEY')
-    
-    else:
-        log.warning(f'flask SECRET_KEY not set, verify the "{FILE_CONFIG}" file')
-        key = os.environ['SECRET_KEY'] = secrets.token_urlsafe(32)
-
-    return key
 
 def token_required(secret_key:str=None):
     def decorator(func):
@@ -40,7 +18,7 @@ def token_required(secret_key:str=None):
             nonlocal secret_key
             
             if secret_key is None:
-                secret_key = get_secret_key()
+                secret_key = os.environ['SECRET_KEY']
 
             # Obtém o token do cabeçalho da requisição
             auth_header = request.headers.get("Authorization")
@@ -65,3 +43,6 @@ def token_required(secret_key:str=None):
             return func(user, *args, **kwargs)
         return wrapper
     return decorator
+
+def validate_cpf(cpf:str) -> bool:
+    return len(cpf) == 14 and re.match(r'\d{3}.\d{3}.\d{3}-\d{2}', cpf)
