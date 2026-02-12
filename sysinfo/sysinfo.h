@@ -20,14 +20,15 @@ namespace sysinfo
         std::wstring DisplayVersion;
         std::wstring Publisher;
         unsigned long EstimatedSize;
-        bool CurrentUserOnly;
+        bool CurrentUserOnly = false;
     };
 
-    struct logical_disk {
-        std::wstring freeSpace;
+    struct disk {
+        std::wstring name;
+        std::wstring seriaNumber;
         std::wstring size;
-        std::wstring unit;
-    };
+        std::wstring model;
+	};
 
     struct network_adapter {
         std::wstring name;
@@ -51,7 +52,7 @@ namespace sysinfo
         std::wstring osSerialNumber;
         std::wstring motherboardManufacturer;
         std::wstring processor;
-        std::vector<logical_disk> logical_disks;
+        std::vector<disk> disks;
         std::vector<network_adapter> network_adapters;
         std::vector<physical_memory> physical_memories;
         std::vector<program> programs;
@@ -62,7 +63,7 @@ namespace sysinfo
     std::wstring get_last_error();
 
     bool get_operating_system_name(std::wstring* out);
-    bool get_logical_disks(std::vector<logical_disk>* out);
+    bool get_disks(std::vector<disk>* out);
     bool get_network_adapters(std::vector<network_adapter>* out);
     bool get_physical_memories(std::vector<physical_memory>* out);
     bool get_programs(std::vector<program>* programs, int flags = DEFAULT);

@@ -33,12 +33,14 @@ int main()
         << "Processor: " << machine.processor << std::endl;
 
     i = 0;
-    std::wcout << "\nLogical Disks:\n";
-    for (const sysinfo::logical_disk& disk : machine.logical_disks) {
+    std::wcout << "\nDisks:\n";
+    for (const sysinfo::disk& disk : machine.disks) {
         std::wcout
             << "\t(" << ++i << ")"
-            << " FreeSpace='" << disk.freeSpace << " " << disk.unit << "'"
-            << " Size='" << disk.size << " " << disk.unit << "'"
+            << " Name='" << disk.name << "'"
+            << " SerialNumber='" << disk.seriaNumber << "'"
+            << " Sizze='" << disk.size << "'"
+            << " Model='" << disk.model << "'"
             << std::endl;
     }
 

@@ -12,6 +12,7 @@ static IWbemLocator* pLoc = NULL;
 static std::wstring _error;
 
 static const std::vector<LPCWSTR> FIELDS_LOGICAL_DISK{ L"FreeSpace", L"Size" };
+static const std::vector<LPCWSTR> FIELDS_DISK_DRIVE{ L"Caption", L"SerialNumber", L"Size", L"Model" };
 static const std::vector<LPCWSTR> FIELDS_NETWORK_ADPATER{ L"Name", L"MACAddress" };
 static const std::vector<LPCWSTR> FIELDS_PHYSICAL_MEMORY{ L"Tag", L"Capacity", L"Speed" };
 static const std::vector<LPCWSTR> FIELDS_PROCESSOR{ L"Name" };
@@ -310,17 +311,18 @@ bool sysinfo::get_operating_system_name(std::wstring* out)
     return true;
 }
 
-bool sysinfo::get_logical_disks(std::vector<logical_disk>* out)
+bool sysinfo::get_disks(std::vector<disk>* out)
 {
     std::vector<std::vector<VARIANT>> variants;
-    if (!query_wmi(L"Win32_LogicalDisk", FIELDS_LOGICAL_DISK, variants))
+    if (!query_wmi(L"Win32_DiskDrive", FIELDS_DISK_DRIVE, variants))
         return false;
 
     for (std::vector<VARIANT>& row : variants) {
         out->emplace_back(
-            (row[0].vt == VT_BSTR ? row[0].bstrVal : L""),   // freeSpace
-            (row[1].vt == VT_BSTR ? row[1].bstrVal : L""),   // size
-            L"B"                // unit
+            (row[0].vt == VT_BSTR ? row[0].bstrVal : L""),    // name
+            (row[1].vt == VT_BSTR ? row[1].bstrVal : L""),    // seriaNumber
+            (row[2].vt == VT_BSTR ? row[2].bstrVal : L""),    // size
+            (row[3].vt == VT_BSTR ? row[3].bstrVal : L"")     // model
         );
 
         clear_variants(row);
@@ -468,7 +470,7 @@ bool sysinfo::get_machine(machine* out)
     return
         get_motherboard_manufacturer(&out->motherboardManufacturer)
         && get_processor_name(&out->processor)
-        && get_logical_disks(&out->logical_disks)
+        && get_disks(&out->disks)
         && get_network_adapters(&out->network_adapters)
         && get_physical_memories(&out->physical_memories)
         && get_programs(&out->programs);
