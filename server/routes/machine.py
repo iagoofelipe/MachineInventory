@@ -60,16 +60,21 @@ def post_new_machine():
 @machine_bp.route('/machines/<owner_id>')
 def get_machines(owner_id:str):
     owner = User.query.get_or_404(owner_id, 'Usuário não encontrado')
-
-    subquery = db.session \
-        .query(
-            func.max(Machine.config_date)
-        ) \
-        .filter(Machine.owner == owner) \
-        .group_by(Machine.os_serial_number)
+    print(owner)
     
-    machines = Machine.query.filter(Machine.id.in_(subquery)).all()
+    for i, machine in enumerate(owner.machines):
+        print('machine', i, machine)
 
-    return flask.jsonify(
-        machines=[ m.dto() for m in machines ]
-    )
+        for j, version in enumerate(machine.versions):
+            print('version', j, version)
+
+        print()
+    # return flask.jsonify(
+    #     machines=[ m.dto() for m in machines ]
+    # )
+
+    data = [
+        
+    ]
+
+    return flask.jsonify(success=True, data=data)

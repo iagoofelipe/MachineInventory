@@ -20,6 +20,9 @@ class User(db.Model):
     name:str = db.Column(db.String(100), nullable=False)
     cpf:str = db.Column(db.String(50), unique=True, nullable=False)
     machines = db.relationship('Machine', backref='owner', lazy=True)
+
+    def __repr__(self):
+        return f"<User id='{self.id}' name='{self.name}'>"
     
     def dto(self, as_dict=False) -> UserDTO | dict[str, str]:
         return {
@@ -40,6 +43,9 @@ class MachineExtra(db.Model):
     motherboard_manufacturer: str = db.Column(db.String(100))
     processor: str = db.Column(db.String(100))
     machine_id: int = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
+
+    def __repr__(self):
+        return f"<MachineExtra id='{self.id}' config_date='{self.config_date}'>"
 
     def dto(self):
         return {
@@ -64,6 +70,9 @@ class Machine(db.Model):
     mac:str = db.Column(db.String(100), nullable=False)
     owner_id: int = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     versions = db.relationship('MachineExtra', backref='machine', lazy=True)
+
+    def __repr__(self):
+        return f"<Machine id='{self.id}' title='{self.title}'>"
 
     def dto(self):
         return {
