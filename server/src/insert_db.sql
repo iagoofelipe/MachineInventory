@@ -8,17 +8,17 @@ INSERT INTO user (id, name, cpf) VALUES
     ('32e6bcda66-1919ab2b53fda09f', 'José Carvalho', '321.654.987-14');
 
 INSERT INTO machine
-    (id, title, mac, owner_id) VALUES
-    ('3813a8513-dfc1136fac3700b1', 'Máquina Pessoal', 'D0:94:66:DC:BB:5Q', '3b425bb05-c1a5d71484582211'),
-    ('3813a8aab-8aaa98666fed837', 'Máquina Pessoal', 'D0:94:66:DC:BB:4D', '32e6bcda66-1919ab2b53fda09f'),
-    ('3813a8ab1-a7982371c415766a', 'Máquina Trabalho', 'D0:94:66:DC:BB:2E', '3b425bb05-c1a5d71484582211');
+    (id, mac, owner_id) VALUES
+    ('3813a8513-dfc1136fac3700b1', 'D0:94:66:DC:BB:5Q', '3b425bb05-c1a5d71484582211'),
+    ('3813a8aab-8aaa98666fed837', 'D0:94:66:DC:BB:4D', '32e6bcda66-1919ab2b53fda09f'),
+    ('3813a8ab1-a7982371c415766a', 'D0:94:66:DC:BB:2E', '3b425bb05-c1a5d71484582211');
 
 INSERT INTO machine_extra
-    (id, config_date, os, os_architecture, os_install_date, os_version, os_serial_number, organization, motherboard_manufacturer, processor, machine_id) VALUES
-    ('3a0b08d4a-ba3f071a9a391250', '2026-02-12 14:00:00', 'Microsoft Windows 11 Pro', '64 bits', '2025-10-22 19:31:11', '10.0.26100', '00380-51207-50199-SSQER', 'Trabalho ABC', 'Dell Inc.', 'Intel(R) Core(TM) i5-8500T CPU @ 2.10GHz', '3813a8ab1-a7982371c415766a'),
-    ('2f80cec3a-2aa2922b5c8ca3e7', '2026-02-12 14:35:00', 'Microsoft Windows 11 Pro', '64 bits', '2025-10-22 19:31:11', '10.0.26100', '00380-51207-50199-SSQER', 'Trabalho ABC', 'Dell Inc.', 'Intel(R) Core(TM) i5-8500T CPU @ 2.10GHz', '3813a8ab1-a7982371c415766a'),
-    ('2f8578260-6d00005eba70b0b4', '2026-02-12 10:00:00', 'Microsoft Windows 11 Pro', '64 bits', '2025-07-12 10:35:00', '10.0.26100', '11387-51368-54488-SABRC', NULL, 'Gigabyte', 'Intel(R) Core(TM) i7 CPU @ 2.4GHz', '3813a8513-dfc1136fac3700b1'),
-    ('2fed3c5e3-2245bb7222c7de6d', '2026-02-12 12:40:00', 'Microsoft Windows 11 Pro', '64 bits', '2026-02-12 10:35:00', '10.0.26100', '11387-51368-54488-JFOYB', NULL, 'Gigabyte', 'Intel(R) Core(TM) i7 CPU @ 2.4GHz', '3813a8aab-8aaa98666fed837');
+    (id, title, config_date, os, os_architecture, os_install_date, os_version, os_serial_number, organization, motherboard, motherboard_manufacturer, processor, processor_clock_speed, machine_id) VALUES
+    ('3a0b08d4a-ba3f071a9a391250', 'Máquina Trabalho', '2026-02-12 14:00:00', 'Microsoft Windows 11 Pro', '64 bits', '2025-10-22 19:31:11', '10.0.26100', '00380-51207-50199-SSQER', 'Trabalho ABC', NULL, 'Dell Inc.', 'Intel(R) Core(TM) i5-8500T CPU @ 2.10GHz', 2100, '3813a8ab1-a7982371c415766a'),
+    ('2f80cec3a-2aa2922b5c8ca3e7', 'Máquina Trabalho', '2026-02-12 14:35:00', 'Microsoft Windows 11 Pro', '64 bits', '2025-10-22 19:31:11', '10.0.26100', '00380-51207-50199-SSQER', 'Trabalho ABC', NULL, 'Dell Inc.', 'Intel(R) Core(TM) i5-8500T CPU @ 2.10GHz', 2100, '3813a8ab1-a7982371c415766a'),
+    ('2f8578260-6d00005eba70b0b4', 'Máquina Pessoal', '2026-02-12 10:00:00', 'Microsoft Windows 11 Pro', '64 bits', '2025-07-12 10:35:00', '10.0.26100', '11387-51368-54488-SABRC', NULL, NULL, 'Gigabyte', 'Intel(R) Core(TM) i7 CPU @ 2.4GHz', 2400, '3813a8513-dfc1136fac3700b1'),
+    ('2fed3c5e3-2245bb7222c7de6d', 'Máquina Pessoal', '2026-02-12 12:40:00', 'Microsoft Windows 11 Pro', '64 bits', '2026-02-12 10:35:00', '10.0.26100', '11387-51368-54488-JFOYB', NULL, NULL, 'Gigabyte', 'Intel(R) Core(TM) i7 CPU @ 2.4GHz', 2400, '3813a8aab-8aaa98666fed837');
 
 -- INSERT INTO machine_disk (id, name, serialNumber, size, model, machineId) VALUES
 --     ('3c9387df4-24bb51b06ac74f2d', 'NVMe KINGSTON SNV2S50', '0000_0000_0000_0000_0026_B768_63EB_ECB5.', 500105249280, 'NVMe KINGSTON SNV2S50','3a0b08d4a-ba3f071a9a391250');

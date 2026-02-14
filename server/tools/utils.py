@@ -46,3 +46,13 @@ def token_required(secret_key:str=None):
 
 def validate_cpf(cpf:str) -> bool:
     return len(cpf) == 14 and re.match(r'\d{3}.\d{3}.\d{3}-\d{2}', cpf)
+
+def get_default_mac(values:list[dict[str, str]]):
+    for v in values:
+        name = v['name'].lower()
+        if 'ethernet' in name or 'realtek' in name:
+            return v['mac']
+    
+    # caso não haja nenhuma correspondência, retorna o primeiro
+    with_mac = list(filter(lambda v: v['mac'], values))
+    return with_mac[0]['mac'] if with_mac else None

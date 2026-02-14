@@ -10,7 +10,9 @@ namespace sysinfo
         IGNORE_SUBSOFTWARE = 1 << 0,
         CURRENT_USER = 1 << 1,
         LOCAL_MACHINE = 1 << 2,
-        IGNORE_EMPTY = 1 << 3,
+        IGNORE_EMPTY_PROGRAM = 1 << 3,
+        IGNORE_EMPTY_MAC = 1 << 4,
+        IGNORE_EMPTY = IGNORE_EMPTY_PROGRAM | IGNORE_EMPTY_MAC,
         ALL_SOURCES = CURRENT_USER | LOCAL_MACHINE,
         DEFAULT = ALL_SOURCES | IGNORE_SUBSOFTWARE | IGNORE_EMPTY,
     };
@@ -50,8 +52,10 @@ namespace sysinfo
         std::wstring osVersion;
         std::wstring osOrganization;
         std::wstring osSerialNumber;
+        std::wstring motherboardName;
         std::wstring motherboardManufacturer;
-        std::wstring processor;
+        std::wstring processorName;
+        long processorClockSpeed = 0;
         std::vector<disk> disks;
         std::vector<network_adapter> network_adapters;
         std::vector<physical_memory> physical_memories;
@@ -64,10 +68,10 @@ namespace sysinfo
 
     bool get_operating_system_name(std::wstring* out);
     bool get_disks(std::vector<disk>* out);
-    bool get_network_adapters(std::vector<network_adapter>* out);
+    bool get_network_adapters(std::vector<network_adapter>* out, int flags = DEFAULT);
     bool get_physical_memories(std::vector<physical_memory>* out);
     bool get_programs(std::vector<program>* programs, int flags = DEFAULT);
-    bool get_motherboard_manufacturer(std::wstring* out);
-    bool get_processor_name(std::wstring* out);
-    bool get_machine(machine* out);
+    bool get_motherboard(std::wstring* name, std::wstring* manufacturer);
+    bool get_processor(std::wstring* name, long* clock_speed);
+    bool get_machine(machine* out, int flags = DEFAULT);
 }

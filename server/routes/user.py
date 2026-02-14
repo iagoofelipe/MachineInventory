@@ -32,3 +32,12 @@ def post_new_user():
         return flask.jsonify(success=False, message="internal server error"), 500
     
     return flask.jsonify(success=True, id=new_user.id)
+
+@user_bp.route('/user/userByCPF/<cpf>')
+def get_user_by_cpf(cpf:str):
+    user = User.query.filter_by(cpf=cpf).first()
+
+    if not user:
+        return flask.jsonify(success=False, message="usuário não encontrado!"), 404
+    
+    return flask.jsonify(user.dto())

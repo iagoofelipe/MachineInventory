@@ -22,8 +22,9 @@
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{ce58a5c6-d7d3-4150-86a1-90d02ca9661f}</ProjectGuid>
-    <RootNamespace>consoleapp</RootNamespace>
+    <RootNamespace>console</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>console</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -130,10 +131,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="consoleapp.cpp" />
+    <ClCompile Include="cJSON.c" />
+    <ClCompile Include="console.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cJSON.h" />
+    <ClInclude Include="console.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>

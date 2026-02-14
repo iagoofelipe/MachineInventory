@@ -11,13 +11,13 @@ static IWbemServices* pSvc = NULL;
 static IWbemLocator* pLoc = NULL;
 static std::wstring _error;
 
-static const std::vector<LPCWSTR> FIELDS_LOGICAL_DISK{ L"FreeSpace", L"Size" };
-static const std::vector<LPCWSTR> FIELDS_DISK_DRIVE{ L"Caption", L"SerialNumber", L"Size", L"Model" };
-static const std::vector<LPCWSTR> FIELDS_NETWORK_ADPATER{ L"Name", L"MACAddress" };
-static const std::vector<LPCWSTR> FIELDS_PHYSICAL_MEMORY{ L"Tag", L"Capacity", L"Speed" };
-static const std::vector<LPCWSTR> FIELDS_PROCESSOR{ L"Name" };
-static const std::vector<LPCWSTR> FIELDS_OPERATING_SYSTEM{ L"Caption", L"Version", L"InstallDate", L"OSArchitecture", L"SerialNumber", L"Organization" };
-static const std::vector<LPCWSTR> FIELDS_BIOS{ L"Manufacturer" };
+static const std::vector<LPCWSTR> FIELDS_LOGICAL_DISK { L"FreeSpace", L"Size" };
+static const std::vector<LPCWSTR> FIELDS_DISK_DRIVE { L"Caption", L"SerialNumber", L"Size", L"Model" };
+static const std::vector<LPCWSTR> FIELDS_NETWORK_ADPATER { L"Name", L"MACAddress" };
+static const std::vector<LPCWSTR> FIELDS_PHYSICAL_MEMORY { L"Tag", L"Capacity", L"Speed" };
+static const std::vector<LPCWSTR> FIELDS_PROCESSOR { L"Name", L"CurrentClockSpeed"};
+static const std::vector<LPCWSTR> FIELDS_OPERATING_SYSTEM { L"Caption", L"Version", L"InstallDate", L"OSArchitecture", L"SerialNumber", L"Organization" };
+static const std::vector<LPCWSTR> FIELDS_BASE_BOARD { L"Manufacturer", L"Product" };
 
 
 static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flags, bool currentUser)
@@ -45,7 +45,7 @@ static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flag
     status = RegQueryValueExW(hKey, L"DisplayName", NULL, &dwType, (LPBYTE)wValue, &wSize);
 
     // caso DisplayName venha em branco e IGNORE_EMPTY esteja definido
-    if (flags & sysinfo::IGNORE_EMPTY && (dwType == VT_EMPTY || status != ERROR_SUCCESS)) {
+    if (flags & sysinfo::IGNORE_EMPTY_PROGRAM && (dwType == VT_EMPTY || status != ERROR_SUCCESS)) {
         RegCloseKey(hKey);
         return false;
     }
@@ -331,17 +331,18 @@ bool sysinfo::get_disks(std::vector<disk>* out)
     return true;
 }
 
-bool sysinfo::get_network_adapters(std::vector<network_adapter>* out)
+bool sysinfo::get_network_adapters(std::vector<network_adapter>* out, int flags)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_NetworkAdapter", FIELDS_NETWORK_ADPATER, variants))
         return false;
 
     for (std::vector<VARIANT>& row : variants) {
-        out->emplace_back(
-            (row[0].vt == VT_BSTR ? row[0].bstrVal : L""),    // name
-            (row[1].vt == VT_BSTR ? row[1].bstrVal : L"")     // mac
-        );
+        if (!(flags & IGNORE_EMPTY_MAC) || row[1].vt == VT_BSTR)
+            out->emplace_back(
+                (row[0].vt == VT_BSTR ? row[0].bstrVal : L""),      // name
+                (row[1].vt == VT_BSTR ? row[1].bstrVal : L"")       // mac
+            );
 
         clear_variants(row);
     }
@@ -424,31 +425,37 @@ bool sysinfo::get_programs(std::vector<program>* programs, int flags)
     return true;
 }
 
-bool sysinfo::get_motherboard_manufacturer(std::wstring* out)
+bool sysinfo::get_motherboard(std::wstring* name, std::wstring* manufacturer)
 {
     std::vector<std::vector<VARIANT>> variants;
-    if (!query_wmi(L"Win32_BIOS", FIELDS_BIOS, variants) || !variants.size())
+    if (!query_wmi(L"Win32_BaseBoard", FIELDS_BASE_BOARD, variants) || !variants.size())
         return false;
 
-    *out = variants[0][0].vt == VT_BSTR ? variants[0][0].bstrVal : L"";
+	auto& row = variants[0];
+    
+    *manufacturer = row[0].vt == VT_BSTR ? row[0].bstrVal : L"";
+    *name = row[1].vt == VT_BSTR ? row[1].bstrVal : L"";
 
     clear_variants(variants);
     return true;
 }
 
-bool sysinfo::get_processor_name(std::wstring* out)
+bool sysinfo::get_processor(std::wstring* name, long* clock_speed)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_Processor", FIELDS_PROCESSOR, variants) || !variants.size())
         return false;
 
-    *out = variants[0][0].vt == VT_BSTR ? variants[0][0].bstrVal : L"";
+	auto& row = variants[0];
+
+    *name = row[0].vt == VT_BSTR ? row[0].bstrVal : L"";
+    *clock_speed = row[1].vt == VT_I4 ? row[1].lVal : 0;
 
     clear_variants(variants);
     return true;
 }
 
-bool sysinfo::get_machine(machine* out)
+bool sysinfo::get_machine(machine* out, int flags)
 {
     // OS
     std::vector<std::vector<VARIANT>> variants;
@@ -466,12 +473,24 @@ bool sysinfo::get_machine(machine* out)
 
     clear_variants(variants);
 
+    // tratando osInstallDate, padrão 20260119151523.000000-180
+	if (out->osInstallDate.size() >= 14) {
+        std::wstring& d = out->osInstallDate;
+        out->osInstallDate =
+            d.substr(0, 4)
+            + L"-" + d.substr(4, 2)
+            + L"-" + d.substr(6, 2)
+            + L" " + d.substr(8, 2)
+            + L":" + d.substr(10, 2)
+            + L":" + d.substr(12, 2);
+    }
+
     // Informações Adicionais
     return
-        get_motherboard_manufacturer(&out->motherboardManufacturer)
-        && get_processor_name(&out->processor)
+        get_motherboard(&out->motherboardName, &out->motherboardManufacturer)
+        && get_processor(&out->processorName, &out->processorClockSpeed)
         && get_disks(&out->disks)
-        && get_network_adapters(&out->network_adapters)
+        && get_network_adapters(&out->network_adapters, flags)
         && get_physical_memories(&out->physical_memories)
-        && get_programs(&out->programs);
+        && get_programs(&out->programs, flags);
 }

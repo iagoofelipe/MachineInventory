@@ -30,6 +30,7 @@ class Server:
         
         # caso command == runserver
         app = flask.Flask(__file__, template_folder=PATH_TEMPLATES, static_folder=PATH_ASSETS, static_url_path='/assets')
+        app.json.sort_keys = False
 
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(PATH_ROOT, 'database.db')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

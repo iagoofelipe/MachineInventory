@@ -77,13 +77,19 @@ void MainWindow::setupResumeInfo()
 
 	// Rows
 	i = list->InsertItem(0, L"Processador");
-	list->SetItem(i, 1, machine.processor);
+	list->SetItem(i, 1, machine.processorName);
+
+	i = list->InsertItem(0, L"Clock do Processador");
+	list->SetItem(i, 1, std::to_string(machine.processorClockSpeed));
 
 	i = list->InsertItem(0, L"Organização");
 	list->SetItem(i, 1, machine.osOrganization);
 
-	i = list->InsertItem(0, L"Fabricante");
+	i = list->InsertItem(0, L"Fabricante da Placa Mãe");
 	list->SetItem(i, 1, machine.motherboardManufacturer);
+
+	i = list->InsertItem(0, L"Placa Mãe");
+	list->SetItem(i, 1, machine.motherboardName);
 
 	i = list->InsertItem(0, L"Número de Série");
 	list->SetItem(i, 1, machine.osSerialNumber);
