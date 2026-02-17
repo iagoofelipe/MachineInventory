@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cJSON.h"
 #include <string>
 #include <vector>
 
@@ -74,4 +75,6 @@ namespace sysinfo
     bool get_motherboard(std::wstring* name, std::wstring* manufacturer);
     bool get_processor(std::wstring* name, long* clock_speed);
     bool get_machine(machine* out, int flags = DEFAULT);
+
+    cJSON* machine_to_cjson(const machine* data);
 }

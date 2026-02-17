@@ -6,9 +6,5 @@
   </Configurations>
   <Project Path="application/application.vcxproj" Id="a5526848-dab7-4181-8f11-3f907a4ffa5f" />
   <Project Path="console/console.vcxproj" Id="ce58a5c6-d7d3-4150-86a1-90d02ca9661f" />
-  <Project Path="server/server.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52" Id="43286c07-4a8a-49e9-8c93-9601f83126c7">
-    <Platform Project="AnyCPU" />
-    <Build Project="false" />
-  </Project>
   <Project Path="sysinfo/sysinfo.vcxproj" Id="21186c04-59ab-46d2-8ba2-db8496523ff1" />
 </Solution>

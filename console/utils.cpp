@@ -1,10 +1,7 @@
-#include "pch.h"
-#include "framework.h"
-
 #include "utils.h"
 
-#include <fcntl.h>  // Necessário para _O_U16TEXT
-#include <io.h>     // Necessário para _setmode
+#include <fcntl.h>  // Necessario para _O_U16TEXT
+#include <io.h>     // Necessario para _setmode
 #include <windows.h>
 #include <stdio.h>
 

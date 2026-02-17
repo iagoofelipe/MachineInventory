@@ -1,13 +1,16 @@
 #pragma once
+
+#include <string_view>
+
+#include "cJSON.h"
 #include "sysinfo.h"
 
-struct response {
-	int status_code = 0;
-	std::string body;
-};
+void show_help();
+bool init_console(const std::wstring_view& command);
+void cleanup();
 
-bool init_console();
-void cleanup_console();
-
-void show_machine(const sysinfo::machine& machine);
-bool upload_machine(const sysinfo::machine& machine, const wchar_t* cpf = NULL, const wchar_t* title = NULL);
+int command_sysinfo();
+int command_upload(const wchar_t* cpf, const wchar_t* machineTitle);
+int command_auth(const wchar_t* cpf, const wchar_t* password);
+int command_newuser(const wchar_t* cpf, const wchar_t* name, const wchar_t* password);
+int command_validatetoken();

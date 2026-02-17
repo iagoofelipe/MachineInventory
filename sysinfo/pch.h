@@ -11,6 +11,8 @@
 #include "framework.h"
 #include <windows.h>
 #include <wbemidl.h>
+#include <curl/curl.h>
+#include "cJSON.h"
 
 #pragma comment(lib, "wbemuuid.lib")
 

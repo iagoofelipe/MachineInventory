@@ -1,250 +1,161 @@
 #include "console.h"
+#include "server.h"
 #include "utils.h"
-#include "cJSON.h"
 
 #include <iostream>
-#include <sstream>
-#include <curl/curl.h>
 
-static CURL* curl = NULL;
+static bool machine_data_required;
+static sysinfo::machine machine;
+static cJSON *json_machine;
 
-static size_t write_callback(void* contents, size_t size, size_t nmemb, std::string* userp) {
-    userp->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
-static bool get_request(const std::string& url, response* r)
+static std::wstring input(const wchar_t* msg = NULL, const wchar_t* def = NULL)
 {
-	r->status_code = 0;
+    if (def)
+        return def;
 
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r->body);
-
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-		std::wcout << "[get_request ERROR] " << curl_easy_strerror(res) << std::endl;
-    }
-    else {
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &r->status_code);
-    }
-
-    curl_easy_reset(curl);
-
-	return res == CURLE_OK;
-}
-
-static bool post_request(const std::string& url, const std::string& data, response* r)
-{
-    r->status_code = 0;
-    struct curl_slist* headers = NULL;
-    CURLcode res;
+    std::wstring buffer;
+    std::wcout << (msg? msg : L"");
+    std::getline(std::wcin, buffer);
     
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r->body);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK) {
-        std::wcout << "[post_request ERROR] " << curl_easy_strerror(res) << std::endl;
-    }
-    else {
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &r->status_code);
-    }
-
-    curl_easy_reset(curl);
-
-    return res == CURLE_OK;
+    return buffer;
 }
 
-bool init_console()
+static std::string input(const char* msg = NULL, const wchar_t* def = NULL)
 {
-    curl = curl_easy_init();
-    if(!curl) {
-        std::wcout << "[init_console ERROR] Failed to initialize CURL" << std::endl;
-        return false;
-	}
+    if (def)
+        return ToString(def);
 
+    std::wstring buffer;
+    std::wcout << (msg? msg : "");
+    std::getline(std::wcin, buffer);
+    
+    return ToString(buffer);
+}
+
+void show_help()
+{
+    std::wcerr
+        << "Usage: console.exe help | sysinfo | validatetoken | auth [CPF [PASSWORD]] | upload [CPF [TITLE]] | newuser [CPF [NAME [PASSWORD]]\n"
+        << "commands:\n"
+        << "\thelp\tShow this message\n"
+        << "\tsysinfo\tShow the system information\n"
+		<< "\tvalidatetoken\tValidate the current token\n"
+        << "\tupload\tGet the system information and upload with the user's CPF\n"
+        << "\tnewuser\tCreate a new user\n";
+}
+
+bool init_console(const std::wstring_view& command)
+{
     configure_terminal();
 
+    machine_data_required = command == L"sysinfo" || command == L"upload";
+    json_machine = NULL;
+
+    if (!machine_data_required)
+        return true;
+
+    if (!sysinfo::init()) {
+        std::wcerr << sysinfo::get_last_error() << std::endl;
+        return false;
+    }
+
+    std::wcout << "getting the machine data..." << std::endl;
+
+    if (!sysinfo::get_machine(&machine)) {
+        std::wcerr << sysinfo::get_last_error() << std::endl;
+        sysinfo::cleanup();
+        return false;
+    }
+
+    if (!(json_machine = sysinfo::machine_to_cjson(&machine))) {
+        std::wcerr << sysinfo::get_last_error() << std::endl;
+        sysinfo::cleanup();
+        return false;
+    }
+
     return true;
 }
 
-void cleanup_console()
+void cleanup()
 {
-    if (curl) {
-        curl_easy_cleanup(curl);
-        curl = NULL;
-    }
+    if (!machine_data_required)
+        return;
+
+    if (json_machine) cJSON_Delete(json_machine);
+    sysinfo::cleanup();
 }
 
-void show_machine(const sysinfo::machine& machine)
+int command_sysinfo()
 {
-    int i;
-
-    std::wcout
-        << "Operating System: " << machine.osName << std::endl
-        << "Architecture: " << machine.osArchitecture << std::endl
-        << "Install Date: " << machine.osInstallDate << std::endl
-        << "Version: " << machine.osVersion << std::endl
-        << "Organization: " << machine.osOrganization << std::endl
-        << "Serial Number: " << machine.osSerialNumber << std::endl
-        << "Motherboard Name: " << machine.motherboardName << std::endl
-        << "Motherboard Manufacturer: " << machine.motherboardManufacturer << std::endl
-        << "Processor Name: " << machine.processorName << std::endl
-        << "Processor Clock Speed: " << machine.processorClockSpeed << std::endl;
-
-    i = 0;
-    std::wcout << "\nDisks:\n";
-    for (const sysinfo::disk& disk : machine.disks) {
-        std::wcout
-            << "\t(" << ++i << ")"
-            << " Name='" << disk.name << "'"
-            << " SerialNumber='" << disk.seriaNumber << "'"
-            << " Sizze='" << disk.size << "'"
-            << " Model='" << disk.model << "'"
-            << std::endl;
-    }
-
-    i = 0;
-    std::wcout << "\nNetwork Adapters:\n";
-    for (const sysinfo::network_adapter& adapter : machine.network_adapters) {
-        std::wcout
-            << "\t(" << ++i << ")"
-            << " Name='" << adapter.name << "'"
-            << " Mac='" << adapter.mac << "'"
-            << std::endl;
-    }
-
-    i = 0;
-    std::wcout << "\nPhysical Memories:\n";
-    for (const sysinfo::physical_memory& memory : machine.physical_memories) {
-        std::wcout
-            << "\t(" << ++i << ")"
-            << " Name='" << memory.name << "'"
-            << " FreeSpace='" << memory.capacity << " " << memory.capaticyUnit << "'"
-            << " Speed='" << memory.speed << " " << memory.speedUnit << "'"
-            << std::endl;
-    }
-
-    i = 0;
-    std::wcout << "\nPrograms:\n";
-    for (const sysinfo::program& p : machine.programs) {
-        std::wcout
-            << "\t(" << ++i << ")"
-            << " DisplayName='" << p.DisplayName << "'"
-            << " DisplayVersion='" << p.DisplayVersion << "'"
-            << " Publisher='" << p.Publisher << "'"
-            << " EstimatedSize='" << p.EstimatedSize << " KB'"
-            << " CurrentUserOnly=" << (p.CurrentUserOnly ? "True" : "False")
-            << std::endl;
-    }
+    std::wcout << cJSON_Print(json_machine) << std::endl;
+    return 0;
 }
 
-bool upload_machine(const sysinfo::machine& machine, const wchar_t* cpf, const wchar_t* title)
+int command_upload(const wchar_t* cpf, const wchar_t* machineTitle)
 {
-    std::wstring _cpf;
+    sysinfo::ServerConnection server;
+    std::string userId, newMachineId;
 
-    if (!cpf) {
-        std::wcout << "User's CPF (000.000.000-00): ";
-        std::getline(std::wcin, _cpf);
+    if (
+        !server.is_ready() ||
+		!server.validate_token() ||
+        !server.upload_machine(
+            json_machine,
+            input("User's CPF: ", cpf).c_str(),
+            input("Machine's Title: ", machineTitle).c_str(),
+            &newMachineId
+        )
+    ) {
+        std::wcerr << server.get_last_error() << std::endl;
+        return 1;
     }
-    else
-		_cpf = cpf;
 
-	// query the user's ID by CPF
-    std::wcout << "[upload_machine] getting the user's ID..." << std::endl;
-    response r;
-    if (!get_request("http://127.0.0.1:5000/user/userByCPF/" + ToString(_cpf), &r))
-        return false;
+    std::wcout << "current version of the machine uploaded successfully, MachineID '" << newMachineId.c_str() << "'\n";
+    return 0;
+}
 
-    if (r.status_code == 404) {
-        std::wcout << "[upload_machine ERROR] User not found with CPF '" << cpf << "'" << std::endl;
-        return false;
+int command_auth(const wchar_t* cpf, const wchar_t* password)
+{
+    sysinfo::ServerConnection server;
+
+    if (
+        !server.is_ready() ||
+        !server.login(input("User's CPF: ", cpf), input("User's password: ", password))
+    ) {
+        std::wcerr << server.get_last_error() << std::endl;
+        return 1;
 	}
 
-    else if (r.status_code != 200) {
-        std::wcout << "[upload_machine ERROR] User not found with CPF, ResponseCode: " << r.status_code << std::endl;
-        return false;
-	}
+    std::wcout << "Token generated with success\n";
+    return 0;
+}
 
-	cJSON* json = cJSON_Parse(r.body.c_str());
-    if (!json) {
-        std::wcout << "[upload_machine ERROR] Failed to parse JSON response" << std::endl;
-        return false;
+int command_newuser(const wchar_t* cpf, const wchar_t* name, const wchar_t* password)
+{
+    sysinfo::ServerConnection server;
+    std::string userId;
+
+    if (
+        !server.is_ready() ||
+        !server.create_new_user(input("User's CPF: ", cpf), input("User's name: ", name), input("User's password: ", password), &userId)
+    ) {
+        std::wcerr << server.get_last_error() << std::endl;
+        return 1;
     }
 
-    cJSON* id_item = cJSON_GetObjectItem(json, "id");
-    if (!id_item || id_item->type != cJSON_String) {
-        std::wcout << "[upload_machine ERROR] Invalid JSON response: 'id' field is missing or not a string" << std::endl;
-        cJSON_Delete(json);
-        return false;
+    std::wcout << "user created with ID '" << userId.c_str() << "'\n";
+    return 0;
+}
+
+int command_validatetoken()
+{
+	sysinfo::ServerConnection server;
+    if (!server.is_ready() || !server.validate_token())
+    {
+		std::wcerr << server.get_last_error() << std::endl;
+        return 1;
     }
 
-    std::string user_id = id_item->valuestring;
-    std::wcout << "[upload_machine] User ID: " << id_item->valuestring << std::endl;
-
-	// sending machine data to the server
-    std::wstringstream wss;
-    std::wstring _title;
-
-    std::wcout << "[upload_machine] uploading machine data..." << std::endl;
-
-    if (!title) {
-        std::wcout << "Enter a title for this machine: ";
-        std::getline(std::wcin, _title);
-    }
-    else
-		_title = title;
-
-    wss
-        << "{\n"
-        << "  \"owner_id\": \"" << user_id.c_str() << "\",\n"
-        << "  \"title\": \"" << _title << "\",\n"
-        << "  \"os\": \"" << machine.osName << "\",\n"
-        << "  \"os_architecture\": \"" << machine.osArchitecture << "\",\n"
-        << "  \"os_install_date\": \"" << machine.osInstallDate << "\",\n"
-        << "  \"os_version\": \"" << machine.osVersion << "\",\n"
-        << "  \"os_serial_number\": \"" << machine.osSerialNumber << "\",\n"
-        << "  \"organization\": \"" << machine.osOrganization << "\",\n"
-        << "  \"motherboard\": \"" << machine.motherboardName << "\",\n"
-        << "  \"motherboard_manufacturer\": \"" << machine.motherboardManufacturer << "\",\n"
-        << "  \"processor\": \"" << machine.processorName << "\",\n"
-		<< "  \"processor_clock_speed\": " << machine.processorClockSpeed << ",\n"
-        << "  \"network_adapters\": [\n";
-
-    int i = 0;
-    size_t index_last = machine.network_adapters.size() - 1;
-
-	for (const sysinfo::network_adapter& adapter : machine.network_adapters) {
-        wss
-        << "    {\n"
-        << "      \"name\": \"" << adapter.name << "\",\n"
-        << "      \"mac\": \"" << adapter.mac << "\"\n"
-        << "    }" << (i++ != index_last ? "," : "") << "\n";
-    }
-
-	wss << "  ]\n}";
-
-    std::wstring wdata = wss.str();
-    std::string data = ToString(wdata);
-    std::wcout << "[upload_machine] JSON data to upload:\n" << wdata << std::endl;
-
-    if (!post_request("http://127.0.0.1:5000/machine/newMachine", data, &r)) {
-        return false;
-    }
-
-    if (r.status_code != 200) {
-        std::wcout << "[upload_machine ERROR] Failed to upload machine data, ResponseCode: " << r.status_code << std::endl;
-        return false;
-    }
-
-	cJSON_Delete(json);
-    return true;
+    std::wcout << "token valid\n";
+    return 0;
 }

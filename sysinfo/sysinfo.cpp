@@ -1,10 +1,8 @@
-// sysinfo.cpp : Define as funções da biblioteca estática.
-//
-
 #include "pch.h"
 #include "framework.h"
 
 #include "sysinfo.h"
+#include "utils.h"
 #include <sstream>
 
 static IWbemServices* pSvc = NULL;
@@ -493,4 +491,52 @@ bool sysinfo::get_machine(machine* out, int flags)
         && get_network_adapters(&out->network_adapters, flags)
         && get_physical_memories(&out->physical_memories)
         && get_programs(&out->programs, flags);
+}
+
+cJSON* sysinfo::machine_to_cjson(const machine* data)
+{
+    cJSON
+        *json = NULL,
+        *jarray_network_adapters = NULL,
+        *jobject_network_adapter = NULL;
+
+    // gerando JSON do objeto inicial
+    if (!(json = cJSON_CreateObject())) {
+        _error = L"it was not possible to create the JSON object";
+        return NULL;
+    }
+
+    if (
+        !cJSON_AddStringToObject(json, "os", ToString(data->osName).c_str()) ||
+        !cJSON_AddStringToObject(json, "osArchitecture", ToString(data->osArchitecture).c_str()) ||
+        !cJSON_AddStringToObject(json, "osInstallDate", ToString(data->osInstallDate).c_str()) ||
+        !cJSON_AddStringToObject(json, "osVersion", ToString(data->osVersion).c_str()) ||
+        !cJSON_AddStringToObject(json, "osSerialNumber", ToString(data->osSerialNumber).c_str()) ||
+        !cJSON_AddStringToObject(json, "osOrganization", ToString(data->osOrganization).c_str()) ||
+        !cJSON_AddStringToObject(json, "motherboard", ToString(data->motherboardName).c_str()) ||
+        !cJSON_AddStringToObject(json, "motherboardManufacturer", ToString(data->motherboardManufacturer).c_str()) ||
+        !cJSON_AddStringToObject(json, "processor", ToString(data->processorName).c_str()) ||
+        !cJSON_AddNumberToObject(json, "processorClockSpeed", data->processorClockSpeed) ||
+        !(jarray_network_adapters = cJSON_AddArrayToObject(json, "networkAdapters"))
+    ) {
+        _error = L"it was not possible to add all JSON properties";
+        cJSON_Delete(json);
+        return NULL;
+    }
+
+    // adicionando adaptadores
+    for (const network_adapter& adapter : data->network_adapters) {
+        if (
+            !(jobject_network_adapter = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_network_adapters, jobject_network_adapter) ||
+            !cJSON_AddStringToObject(jobject_network_adapter, "name", ToString(adapter.name).c_str()) ||
+            !cJSON_AddStringToObject(jobject_network_adapter, "mac", ToString(adapter.mac).c_str())
+        ) {
+            _error = L"it wasn't possible to add all JSON properties";
+            cJSON_Delete(json);
+            return NULL;
+        }
+    }
+
+    return json;
 }
