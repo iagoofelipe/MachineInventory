@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Form">
+      <UniqueIdentifier>{58113670-126d-4d3b-a2d7-0137f613602b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MachineInventoryApp.h">
@@ -21,6 +24,9 @@
     <ClInclude Include="MainWindow.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
+    <ClInclude Include="AuthOwnerForm.h">
+      <Filter>Form</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MachineInventoryApp.cpp">
@@ -28,6 +34,9 @@
     </ClCompile>
     <ClCompile Include="MainWindow.cpp">
       <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="AuthOwnerForm.cpp">
+      <Filter>Form</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

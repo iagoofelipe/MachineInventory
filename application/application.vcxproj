@@ -130,10 +130,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AuthOwnerForm.h" />
     <ClInclude Include="MachineInventoryApp.h" />
     <ClInclude Include="MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AuthOwnerForm.cpp" />
     <ClCompile Include="MachineInventoryApp.cpp" />
     <ClCompile Include="MainWindow.cpp" />
   </ItemGroup>

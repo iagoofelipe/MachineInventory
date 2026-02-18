@@ -34,11 +34,11 @@ def token_required(return_user_id=False, return_user_instance=False) -> Callable
             # Obtém o token do cabeçalho da requisição
             auth_header = request.headers.get("Authorization")
             if not auth_header:
-                return jsonify(msg="Token é necessário!"), 400
+                return jsonify(message="Token é necessário!"), 400
 
             parts = auth_header.split()
             if parts[0].lower() != 'bearer' or len(parts) != 2:
-                return jsonify(msg="Cabeçalho de autorização malformado!"), 400
+                return jsonify(message="Cabeçalho de autorização malformado!"), 400
             token = parts[1]
 
             try:
@@ -56,10 +56,10 @@ def token_required(return_user_id=False, return_user_instance=False) -> Callable
                         raise ValueError()
                 
             except (jwt.ExpiredSignatureError, ValueError):
-                return jsonify(msg="Token expirado! Faça login novamente."), 401
+                return jsonify(message="Token expirado! Faça login novamente."), 401
             
             except (jwt.InvalidTokenError, KeyError):
-                return jsonify(msg="Token inválido!"), 400
+                return jsonify(message="Token inválido!"), 400
             
             if return_user_id or return_user_instance:
                 return func(user, *args, **kwargs)

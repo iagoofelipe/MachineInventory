@@ -37,6 +37,11 @@ sysinfo::ServerConnection::~ServerConnection()
     curl_easy_cleanup(curl);
 }
 
+const char* sysinfo::ServerConnection::get_last_error() { return last_error.c_str(); }
+const char* sysinfo::ServerConnection::get_token() { return token.c_str(); }
+bool sysinfo::ServerConnection::is_ready() { return curl; }
+bool sysinfo::ServerConnection::has_token() { return !token.empty(); }
+
 bool sysinfo::ServerConnection::validate_token()
 {
     if (token.empty()) {
@@ -45,19 +50,26 @@ bool sysinfo::ServerConnection::validate_token()
 	}
 
     response r;
-    if (get_request(BASE_URL + "/auth/validateToken", &r) && r.status_code == 200)
-        return true;
+    if (!get_request(BASE_URL + "/auth/validateToken", &r))
+        return false;
 
-    last_error = "Invalid token, ResponseCode: " + std::to_string(r.status_code) + ", Content: " + r.content;
-    return false;
+    if (r.status_code != 200) {
+		get_sfield_from_jstring(r.content, "message", &last_error);
+        return false;
+    }
+
+    return true;
 }
 
 bool sysinfo::ServerConnection::login(const std::string& cpf, const std::string& password)
 {
     response r;
-	post_request(BASE_URL + "/auth", "{\"cpf\":\"" + cpf + "\",\"password\":\"" + password + "\"}", &r);
+	if (!post_request(BASE_URL + "/auth", "{\"cpf\":\"" + cpf + "\",\"password\":\"" + password + "\"}", &r)) {
+        return false;
+	}
+
     if (r.status_code != 200) {
-        last_error = "Login failed, ResponseCode: " + std::to_string(r.status_code) + ", Content: " + r.content;
+		get_sfield_from_jstring(r.content, "message", &last_error);
         return false;
 	}
 
@@ -94,34 +106,49 @@ bool sysinfo::ServerConnection::login(const std::string& cpf, const std::string&
     return true;
 }
 
-// bool sysinfo::ServerConnection::get_user_id_by_cpf(const std::string& cpf, std::string *id)
-// {
-//     response r;
-//     if (!get_request(BASE_URL + "/user/" + cpf, &r))
-//         return false;
+bool sysinfo::ServerConnection::get_user(user* u)
+{
+	return get_user("", u);
+}
 
-//     if (r.status_code != 200) {
-//         last_error = (std::string)"User not found with CPF '" + cpf + "', ResponseCode " + std::to_string(r.status_code);
-//         return false;
-// 	}
+bool sysinfo::ServerConnection::get_user(const std::string& cpf_or_id, user* u)
+{
+	response r;
+    std::string url = BASE_URL + "/user" + (cpf_or_id.empty() ? "" : "/" + cpf_or_id);
 
-// 	cJSON* json = cJSON_Parse(r.content.c_str());
-//     if (!json) {
-//         last_error = "Failed to parse JSON response";
-//         return false;
-//     }
+    if (!get_request(url, &r)) {
+        last_error = "Failed to get user data, ResponseCode: " + std::to_string(r.status_code);
+        return false;
+    }
 
-//     cJSON* id_item = cJSON_GetObjectItem(json, "id");
-//     if (!id_item || id_item->type != cJSON_String) {
-//         last_error = "Invalid JSON response: 'id' field is missing or not a string";
-//         cJSON_Delete(json);
-//         return false;
-//     }
+    if (r.status_code != 200) {
+        get_sfield_from_jstring(r.content, "message", &last_error);
+        return false;
+    }
 
-//     *id = id_item->valuestring;
-//     cJSON_Delete(json);
-//     return true;
-// }
+	cJSON *json, *json_id, *json_cpf, *json_name;
+    if (!(json = cJSON_Parse(r.content.c_str()))) {
+        last_error = "it wasn't possible to parse the JSON from the server response";
+		return false;
+    }
+
+    if (
+        !(json_id = cJSON_GetObjectItem(json, "id")) || !cJSON_IsString(json_id) ||
+        !(json_cpf = cJSON_GetObjectItem(json, "cpf")) || !cJSON_IsString(json_cpf) ||
+        !(json_name = cJSON_GetObjectItem(json, "name")) || !cJSON_IsString(json_name)
+    ) {
+        last_error = "it wasn't possible to parse the user data from the server response";
+        cJSON_Delete(json);
+        return false;
+	}
+
+    u->id = json_id->valuestring;
+    u->cpf = json_cpf->valuestring;
+    u->name = json_name->valuestring;
+
+    cJSON_Delete(json);
+    return true;
+}
 
 bool sysinfo::ServerConnection::create_new_user(const std::string &cpf, const std::string &name, const std::string& password, std::string *id)
 {
@@ -143,17 +170,21 @@ bool sysinfo::ServerConnection::create_new_user(const std::string &cpf, const st
     }
 
     response r;
-    post_request(BASE_URL + "/user", cJSON_PrintUnformatted(json), &r);
+    bool request_success = post_request(BASE_URL + "/user", cJSON_PrintUnformatted(json), &r);
     cJSON_Delete(json);
     json = NULL;
 
+	if (!request_success) {
+        return false;
+    }
+
     if (r.status_code != 200) {
-        last_error = "it wasn't possible to create the new user, ResponseCode: " + std::to_string(r.status_code) + ", Content: " + r.content;
+		get_sfield_from_jstring(r.content, "message", &last_error);
         return false;
     }
 
     // coletando id criado
-    return get_id_from_response(r.content, id);
+    return get_sfield_from_jstring(r.content, "id", id);
 }
 
 bool sysinfo::ServerConnection::upload_machine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id)
@@ -182,15 +213,16 @@ bool sysinfo::ServerConnection::upload_machine(cJSON* json, const char* ownerCpf
 
     // enviando dados para o servidor
     response r;
-    post_request(BASE_URL + "/machine", cJSON_PrintUnformatted(json), &r);
+    if (!post_request(BASE_URL + "/machine", cJSON_PrintUnformatted(json), &r))
+        return false;
 
     if (r.status_code != 200) {
-        last_error = "Failed to upload machine data, ResponseCode: " + std::to_string(r.status_code) + ", Content: " + r.content;
+		get_sfield_from_jstring(r.content, "message", &last_error);
         return false;
     }
 
     // coletando id criado
-    return get_id_from_response(r.content, id);
+    return get_sfield_from_jstring(r.content, "id", id);
 }
 
 bool sysinfo::ServerConnection::get_request(const std::string& url, response* r)
@@ -244,28 +276,30 @@ bool sysinfo::ServerConnection::post_request(const std::string& url, const std::
     return res == CURLE_OK;
 }
 
-bool sysinfo::ServerConnection::get_id_from_response(const std::string& content, std::string *id)
+bool sysinfo::ServerConnection::get_sfield_from_jstring(const std::string& content, const std::string& field, std::string* out)
 {
     cJSON
         *json = NULL,
         *json_id = NULL;
 
     if ((json = cJSON_Parse(content.c_str())) == NULL) {
-        last_error = "it wasn't possible to extract the JSON from the server response";
+        last_error = "it wasn't possible to extract the JSON from string";
         return false;
     }
 
+	const char* c_field = field.c_str();
+
     if (
-        !cJSON_HasObjectItem(json, "id") ||
-        !(json_id = cJSON_GetObjectItem(json, "id")) ||
+        !cJSON_HasObjectItem(json, c_field) ||
+        !(json_id = cJSON_GetObjectItem(json, c_field)) ||
         !cJSON_IsString(json_id)
     ) {
-        last_error = "it wasn't possible to get the id from the server response";
+        last_error = "it wasn't possible to get the" + field + "from string";
         cJSON_Delete(json);
         return false;
     }
 
-    *id = json_id->valuestring;
+    *out = json_id->valuestring;
     cJSON_Delete(json);
     return true;
 }

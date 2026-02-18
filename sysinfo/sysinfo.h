@@ -22,7 +22,7 @@ namespace sysinfo
         std::wstring DisplayName;
         std::wstring DisplayVersion;
         std::wstring Publisher;
-        unsigned long EstimatedSize;
+        unsigned long EstimatedSize = 0;
         bool CurrentUserOnly = false;
     };
 

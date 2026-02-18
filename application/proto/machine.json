@@ -1,0 +1,602 @@
+{
+    "os": "Microsoft Windows 11 Pro",
+    "osArchitecture": "64 bits",
+    "osInstallDate": "2026-01-19 15:15:23",
+    "osVersion": "10.0.26200",
+    "osSerialNumber": "00330-80000-00000-AA779",
+    "osOrganization": "",
+    "motherboard": "B450M DS3H V2",
+    "motherboardManufacturer": "Gigabyte Technology Co., Ltd.",
+    "processor": "AMD Ryzen 5 4500 6-Core Processor",
+    "processorClockSpeed": 3600,
+    "disks": [
+        {
+            "name": "KINGSTON SNV2S1000G",
+            "seriaNumber": "0000_0000_0000_0000_0026_B768_6F2F_9615.",
+            "size": "1000202273280",
+            "model": "KINGSTON SNV2S1000G"
+        }
+    ],
+    "networkAdapters": [
+        {
+            "name": "Realtek Gaming GbE Family Controller",
+            "mac": "D8:5E:D3:E8:B6:ED"
+        },
+        {
+            "name": "WAN Miniport (IP)",
+            "mac": "9E:7F:20:52:41:53"
+        },
+        {
+            "name": "WAN Miniport (IPv6)",
+            "mac": "A0:09:20:52:41:53"
+        },
+        {
+            "name": "WAN Miniport (Network Monitor)",
+            "mac": "A2:7E:20:52:41:53"
+        },
+        {
+            "name": "Bluetooth Device (Personal Area Network) #2",
+            "mac": "00:1B:10:00:2A:EC"
+        }
+    ],
+    "physicalMemories": [
+        {
+            "name": "Physical Memory 0",
+            "capacity": "8589934592",
+            "speed": 2133
+        },
+        {
+            "name": "Physical Memory 2",
+            "capacity": "8589934592",
+            "speed": 2133
+        }
+    ],
+    "programs": [
+        {
+            "name": "Git",
+            "version": "",
+            "publisher": "",
+            "estimatedSize": 354563,
+            "currentUserOnly": false
+        },
+        {
+            "name": "IntelliJ IDEA 2025.3.2",
+            "version": "253.30387.90",
+            "publisher": "",
+            "estimatedSize": 0,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Riot Vanguard",
+            "version": "",
+            "publisher": "",
+            "estimatedSize": 0,
+            "currentUserOnly": false
+        },
+        {
+            "name": "R.E.P.O.",
+            "version": "",
+            "publisher": "semiwork",
+            "estimatedSize": 0,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Counter-Strike 2",
+            "version": "",
+            "publisher": "Valve",
+            "estimatedSize": 0,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Tcl/Tk Support (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 13888,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET AppHost Pack - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 12388,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Test Suite (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 35592,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft Visual C++ 2022 X64 Debug Runtime - 14.50.35719",
+            "version": "14.50.35719",
+            "publisher": "",
+            "estimatedSize": 29886,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Standard Library (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 23484,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET 10.0 Templates 10.0.103 x64",
+            "version": "40.10.52243",
+            "publisher": "",
+            "estimatedSize": 10328,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Mono.Toolchain.net8.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 56,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET Toolset 10.0.103 (x64)",
+            "version": "40.10.52243",
+            "publisher": "",
+            "estimatedSize": 418004,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Mono.Toolchain.net9.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 56,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft Windows Desktop Runtime - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 97260,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Windows App Certification Kit Native Components",
+            "version": "10.1.26100.7705",
+            "publisher": "",
+            "estimatedSize": 8656,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 56,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Emscripten.Current.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 632,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 pip Bootstrap (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 288,
+            "currentUserOnly": false
+        },
+        {
+            "name": "vs_minshellinteropx64msi",
+            "version": "18.3.11407",
+            "publisher": "",
+            "estimatedSize": 72,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET Runtime - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 78488,
+            "currentUserOnly": false
+        },
+        {
+            "name": "vs_communityx64msi",
+            "version": "18.3.11407",
+            "publisher": "",
+            "estimatedSize": 1112,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Emscripten.net8.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 632,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Documentation (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 61528,
+            "currentUserOnly": false
+        },
+        {
+            "name": "DiagnosticsHub_CollectionService",
+            "version": "18.3.36721",
+            "publisher": "",
+            "estimatedSize": 1302,
+            "currentUserOnly": false
+        },
+        {
+            "name": "PowerToys (Preview)",
+            "version": "0.97.2",
+            "publisher": "",
+            "estimatedSize": 1016057,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Sdk.tvOS.Manifest-10.0.100 (x64)",
+            "version": "255.222.10191",
+            "publisher": "",
+            "estimatedSize": 712,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET Targeting Pack - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 43072,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Application Verifier x64 External Package (OnecoreUAP)",
+            "version": "10.1.26100.7705",
+            "publisher": "Microsoft",
+            "estimatedSize": 5684,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft System CLR Types para SQL Server 2019",
+            "version": "15.0.2000.5",
+            "publisher": "",
+            "estimatedSize": 6728,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.50.35719",
+            "version": "14.50.35719",
+            "publisher": "",
+            "estimatedSize": 2404,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft ASP.NET Core Runtime - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 29360,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Google Drive",
+            "version": "121.0.1.0",
+            "publisher": "",
+            "estimatedSize": 0,
+            "currentUserOnly": false
+        },
+        {
+            "name": "VS JIT Debugger",
+            "version": "17.0.157.0",
+            "publisher": "",
+            "estimatedSize": 2931,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET AppHost Pack - 10.0.3 (x64_arm64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 12756,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft Visual Studio Installer",
+            "version": "4.3.2029.11392",
+            "publisher": "",
+            "estimatedSize": 0,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Emscripten.net7.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 632,
+            "currentUserOnly": false
+        },
+        {
+            "name": "spacedesk Windows DRIVER",
+            "version": "2.2.15.0",
+            "publisher": "",
+            "estimatedSize": 7346,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET Host FX Resolver - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 352,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 80,
+            "currentUserOnly": false
+        },
+        {
+            "name": "vs_minshellx64msi",
+            "version": "18.3.11407",
+            "publisher": "",
+            "estimatedSize": 4,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET Host - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 492,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Sdk.macOS.Manifest-10.0.100 (x64)",
+            "version": "255.222.10191",
+            "publisher": "",
+            "estimatedSize": 712,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft Windows Desktop Targeting Pack - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 60760,
+            "currentUserOnly": false
+        },
+        {
+            "name": "vs_devenx64vmsi",
+            "version": "18.3.11407",
+            "publisher": "",
+            "estimatedSize": 248,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET Standard Targeting Pack - 2.1.0 (x64)",
+            "version": "24.0.28113",
+            "publisher": "",
+            "estimatedSize": 19892,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 56,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Sdk.MacCatalyst.Manifest-10.0.100 (x64)",
+            "version": "255.222.10191",
+            "publisher": "",
+            "estimatedSize": 712,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Adobe Acrobat (64-bit)",
+            "version": "25.001.21223",
+            "publisher": "Adobe",
+            "estimatedSize": 1197628,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft Visual C++ 2022 X64 Additional Runtime - 14.50.35719",
+            "version": "14.50.35719",
+            "publisher": "",
+            "estimatedSize": 11864,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft ASP.NET Core Targeting Pack - 10.0.3 (x64)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 50232,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET AppHost Pack - 10.0.3 (x64_x86)",
+            "version": "80.12.47319",
+            "publisher": "",
+            "estimatedSize": 10768,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Sdk.Android.Manifest-10.0.100 (x64)",
+            "version": "36.1.2",
+            "publisher": "",
+            "estimatedSize": 712,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Executables (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 2656,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Core Interpreter (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 6032,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Sdk.Maui.Manifest-10.0.100 (x64)",
+            "version": "10.0.20",
+            "publisher": "",
+            "estimatedSize": 640,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Emscripten.net6.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 632,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Universal CRT Tools x64",
+            "version": "10.1.26100.7705",
+            "publisher": "",
+            "estimatedSize": 2064,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Application Verifier x64 External Package (DesktopEditions)",
+            "version": "10.1.26100.7705",
+            "publisher": "Microsoft",
+            "estimatedSize": 460,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Java(TM) SE Development Kit 21.0.10 (64-bit)",
+            "version": "21.0.10.0",
+            "publisher": "",
+            "estimatedSize": 325665,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Python 3.13.12 Development Libraries (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 2844,
+            "currentUserOnly": false
+        },
+        {
+            "name": "PowerShell 7-x64",
+            "version": "7.5.4.0",
+            "publisher": "",
+            "estimatedSize": 286814,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft .NET SDK 10.0.103 (x64) from Visual Studio",
+            "version": "40.10.52243",
+            "publisher": "",
+            "estimatedSize": 580,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Workload.Emscripten.net9.Manifest-10.0.100 (x64)",
+            "version": "81.156.47319",
+            "publisher": "",
+            "estimatedSize": 632,
+            "currentUserOnly": false
+        },
+        {
+            "name": "VS Script Debugging Common",
+            "version": "17.0.157.0",
+            "publisher": "",
+            "estimatedSize": 5774,
+            "currentUserOnly": false
+        },
+        {
+            "name": "IntelliTraceProfilerProxy",
+            "version": "15.0.21225.01",
+            "publisher": "",
+            "estimatedSize": 13,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Microsoft.NET.Sdk.iOS.Manifest-10.0.100 (x64)",
+            "version": "255.222.10191",
+            "publisher": "",
+            "estimatedSize": 712,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Windows SDK DirectX x64 Remote",
+            "version": "10.1.26100.7705",
+            "publisher": "",
+            "estimatedSize": 576,
+            "currentUserOnly": false
+        },
+        {
+            "name": "Discord",
+            "version": "",
+            "publisher": "",
+            "estimatedSize": 112214,
+            "currentUserOnly": true
+        },
+        {
+            "name": "Microsoft OneDrive",
+            "version": "26.012.0119.0002",
+            "publisher": "",
+            "estimatedSize": 765468,
+            "currentUserOnly": true
+        },
+        {
+            "name": "Postman x64 11.85.1",
+            "version": "11.85.1",
+            "publisher": "Postman",
+            "estimatedSize": 143879,
+            "currentUserOnly": true
+        },
+        {
+            "name": "Python 3.14.2",
+            "version": "3.14-64",
+            "publisher": "",
+            "estimatedSize": 125425,
+            "currentUserOnly": true
+        },
+        {
+            "name": "Riot Client ",
+            "version": "",
+            "publisher": "",
+            "estimatedSize": 0,
+            "currentUserOnly": true
+        },
+        {
+            "name": "VALORANT",
+            "version": "",
+            "publisher": "",
+            "estimatedSize": 28930343,
+            "currentUserOnly": true
+        },
+        {
+            "name": "Microsoft Visual Studio Code (User)",
+            "version": "1.109.4",
+            "publisher": "",
+            "estimatedSize": 494265,
+            "currentUserOnly": true
+        },
+        {
+            "name": "PowerToys (Preview) x64",
+            "version": "0.97.2",
+            "publisher": "",
+            "estimatedSize": 1790971,
+            "currentUserOnly": true
+        },
+        {
+            "name": "Python 3.13.12 (64-bit)",
+            "version": "3.13.12150.0",
+            "publisher": "",
+            "estimatedSize": 167381,
+            "currentUserOnly": true
+        },
+        {
+            "name": "MSYS2",
+            "version": "",
+            "publisher": "",
+            "estimatedSize": 323066,
+            "currentUserOnly": true
+        }
+    ]
+}

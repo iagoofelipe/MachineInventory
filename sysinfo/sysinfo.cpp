@@ -7,6 +7,7 @@
 
 static IWbemServices* pSvc = NULL;
 static IWbemLocator* pLoc = NULL;
+static bool coInitialized = false;
 static std::wstring _error;
 
 static const std::vector<LPCWSTR> FIELDS_LOGICAL_DISK { L"FreeSpace", L"Size" };
@@ -235,7 +236,7 @@ bool sysinfo::init()
         return false;
     }
 
-    return true;
+    return coInitialized = true;
 }
 
 void sysinfo::cleanup()
@@ -250,7 +251,10 @@ void sysinfo::cleanup()
         pLoc = NULL;
     }
 
-    CoUninitialize();
+    if (coInitialized) {
+        CoUninitialize();
+        coInitialized = false;
+    }
 }
 
 std::wstring sysinfo::get_last_error() { return _error; }
@@ -497,8 +501,11 @@ cJSON* sysinfo::machine_to_cjson(const machine* data)
 {
     cJSON
         *json = NULL,
+        *jobject = NULL,
+        *jarray_disks = NULL,
         *jarray_network_adapters = NULL,
-        *jobject_network_adapter = NULL;
+        *jarray_physical_memories = NULL,
+        *jarray_programs = NULL;
 
     // gerando JSON do objeto inicial
     if (!(json = cJSON_CreateObject())) {
@@ -517,26 +524,77 @@ cJSON* sysinfo::machine_to_cjson(const machine* data)
         !cJSON_AddStringToObject(json, "motherboardManufacturer", ToString(data->motherboardManufacturer).c_str()) ||
         !cJSON_AddStringToObject(json, "processor", ToString(data->processorName).c_str()) ||
         !cJSON_AddNumberToObject(json, "processorClockSpeed", data->processorClockSpeed) ||
-        !(jarray_network_adapters = cJSON_AddArrayToObject(json, "networkAdapters"))
+        !(jarray_disks = cJSON_AddArrayToObject(json, "disks")) ||
+        !(jarray_network_adapters = cJSON_AddArrayToObject(json, "networkAdapters")) ||
+        !(jarray_physical_memories = cJSON_AddArrayToObject(json, "physicalMemories")) ||
+        !(jarray_programs = cJSON_AddArrayToObject(json, "programs"))
     ) {
         _error = L"it was not possible to add all JSON properties";
         cJSON_Delete(json);
         return NULL;
     }
 
-    // adicionando adaptadores
-    for (const network_adapter& adapter : data->network_adapters) {
+	// adicionando discos
+	for (const disk& d : data->disks) {
         if (
-            !(jobject_network_adapter = cJSON_CreateObject()) ||
-            !cJSON_AddItemToArray(jarray_network_adapters, jobject_network_adapter) ||
-            !cJSON_AddStringToObject(jobject_network_adapter, "name", ToString(adapter.name).c_str()) ||
-            !cJSON_AddStringToObject(jobject_network_adapter, "mac", ToString(adapter.mac).c_str())
+            !(jobject = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_disks, jobject) ||
+            !cJSON_AddStringToObject(jobject, "name", ToString(d.name).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "seriaNumber", ToString(d.seriaNumber).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "size", ToString(d.size).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "model", ToString(d.model).c_str())
         ) {
             _error = L"it wasn't possible to add all JSON properties";
             cJSON_Delete(json);
             return NULL;
         }
     }
+
+    // adicionando adaptadores
+    for (const network_adapter& adapter : data->network_adapters) {
+        if (
+            !(jobject = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_network_adapters, jobject) ||
+            !cJSON_AddStringToObject(jobject, "name", ToString(adapter.name).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "mac", ToString(adapter.mac).c_str())
+        ) {
+            _error = L"it wasn't possible to add all JSON properties";
+            cJSON_Delete(json);
+            return NULL;
+        }
+    }
+
+	// adicionando memórias
+    for (const physical_memory& memory : data->physical_memories) {
+        if (
+            !(jobject = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_physical_memories, jobject) ||
+            !cJSON_AddStringToObject(jobject, "name", ToString(memory.name).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "capacity", ToString(memory.capacity).c_str()) ||
+            !cJSON_AddNumberToObject(jobject, "speed", memory.speed)
+        ) {
+            _error = L"it wasn't possible to add all JSON properties";
+            cJSON_Delete(json);
+            return NULL;
+        }
+	}
+
+	// adicionando programas
+    for (const program& p : data->programs) {
+        if (
+            !(jobject = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_programs, jobject) ||
+            !cJSON_AddStringToObject(jobject, "name", ToString(p.DisplayName).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "version", ToString(p.DisplayVersion).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "publisher", ToString(p.Publisher).c_str()) ||
+            !cJSON_AddNumberToObject(jobject, "estimatedSize", p.EstimatedSize) ||
+            !cJSON_AddBoolToObject(jobject, "currentUserOnly", p.CurrentUserOnly)
+        ) {
+            _error = L"it wasn't possible to add all JSON properties";
+            cJSON_Delete(json);
+            return NULL;
+        }
+	}
 
     return json;
 }
