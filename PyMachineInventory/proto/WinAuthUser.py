@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QMainWindow, QApplication, QSplitter, QTableWidget, QTreeWidget, QTreeWidgetItem, QHeaderView, QVBoxLayout, QTableWidgetItem
+from PySide6.QtWidgets import QMainWindow, QApplication, QSplitter, QTableWidget, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QTableWidgetItem
 from PySide6.QtCore import Qt
 from enum import Enum, auto
 import json
+from qt_material import apply_stylesheet
 
 from autofiles.Ui_WinAuthUser import Ui_WinAuthUser
 from ServerConnection import ServerConnection
@@ -22,7 +23,6 @@ class WinAuthUser(QMainWindow):
         self.ui = Ui_WinAuthUser()
         self.ui.setupUi(self)
         self.setupMachineUi()
-        self.resize(800, 500)
 
         self.ui.checkBox.checkStateChanged.connect(self.on_checkBox_checkStateChanged)
         self.ui.btnContinue.clicked.connect(self.on_btnContinue_clicked)
@@ -78,6 +78,8 @@ class WinAuthUser(QMainWindow):
 
         self.tree.setCurrentItem(root)
         self.update_table(root, None)
+
+        splitter.setSizes([300, 600])
 
     def update_table(self, item, column):
         # Limpa a tabela atual
@@ -366,5 +368,6 @@ if __name__ == '__main__':
     app = QApplication()
     win = WinAuthUser()
     
+    apply_stylesheet(app, theme='dark_teal.xml')
     win.show()
     app.exec()

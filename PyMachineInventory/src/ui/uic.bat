@@ -1,0 +1,1 @@
+pyside6-uic src\ui\SyncForm.ui -o src\ui\autofiles\Ui_SyncForm.py
