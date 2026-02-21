@@ -1,5 +1,7 @@
+from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import QRunnable, Slot
 from dataclasses import fields
+from typing import Iterable
 
 class Worker(QRunnable):
     def __init__(self, func, *args, callback=None, use_return=False, **kwargs):
@@ -21,3 +23,18 @@ class Worker(QRunnable):
 
 def dataclass_to_dict(instance:object):
     return { f.name: getattr(instance, f.name) for f in fields(instance) }
+
+def set_unenabled(widgets:Iterable[QWidget], unenabled=True):
+    changes = []
+
+    if unenabled:
+        for wid in widgets:
+            if wid.isEnabled():
+                wid.setEnabled(False)
+                changes.append(wid)
+        
+    else:
+        for wid in widgets:
+            wid.setEnabled(True)
+    
+    return changes

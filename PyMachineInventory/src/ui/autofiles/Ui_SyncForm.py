@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'SyncForm.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.10.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -23,7 +23,7 @@ class Ui_SyncForm(object):
     def setupUi(self, SyncForm):
         if not SyncForm.objectName():
             SyncForm.setObjectName(u"SyncForm")
-        SyncForm.resize(390, 404)
+        SyncForm.resize(537, 496)
         self.verticalLayout = QVBoxLayout(SyncForm)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.lbTitle = QLabel(SyncForm)
@@ -67,28 +67,6 @@ class Ui_SyncForm(object):
 
         self.verticalLayout_3.addWidget(self.leCpf)
 
-        self.lbPass = QLabel(self.widget_2)
-        self.lbPass.setObjectName(u"lbPass")
-
-        self.verticalLayout_3.addWidget(self.lbPass)
-
-        self.lePass = QLineEdit(self.widget_2)
-        self.lePass.setObjectName(u"lePass")
-        self.lePass.setEchoMode(QLineEdit.Password)
-
-        self.verticalLayout_3.addWidget(self.lePass)
-
-        self.lbPassConfirm = QLabel(self.widget_2)
-        self.lbPassConfirm.setObjectName(u"lbPassConfirm")
-
-        self.verticalLayout_3.addWidget(self.lbPassConfirm)
-
-        self.lePassConfirm = QLineEdit(self.widget_2)
-        self.lePassConfirm.setObjectName(u"lePassConfirm")
-        self.lePassConfirm.setEchoMode(QLineEdit.Password)
-
-        self.verticalLayout_3.addWidget(self.lePassConfirm)
-
         self.lbName = QLabel(self.widget_2)
         self.lbName.setObjectName(u"lbName")
 
@@ -119,7 +97,7 @@ class Ui_SyncForm(object):
         font1.setPointSize(9)
         font1.setBold(False)
         self.lbMessage.setFont(font1)
-        self.lbMessage.setStyleSheet(u"color: rgb(173, 0, 0);")
+        self.lbMessage.setStyleSheet(u"color: rgba(255, 0, 0, 255);")
         self.lbMessage.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout.addWidget(self.lbMessage)
@@ -137,10 +115,10 @@ class Ui_SyncForm(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
-        self.btnSecondary = QPushButton(self.widBtns)
-        self.btnSecondary.setObjectName(u"btnSecondary")
+        self.btnBack = QPushButton(self.widBtns)
+        self.btnBack.setObjectName(u"btnBack")
 
-        self.horizontalLayout.addWidget(self.btnSecondary)
+        self.horizontalLayout.addWidget(self.btnBack)
 
         self.btnContinue = QPushButton(self.widBtns)
         self.btnContinue.setObjectName(u"btnContinue")
@@ -160,12 +138,10 @@ class Ui_SyncForm(object):
         SyncForm.setWindowTitle(QCoreApplication.translate("SyncForm", u"Form", None))
         self.lbTitle.setText(QCoreApplication.translate("SyncForm", u"TITLE", None))
         self.checkBox.setText(QCoreApplication.translate("SyncForm", u"Cadastrar m\u00e1quina de outro usu\u00e1rio", None))
-        self.lbCpf.setText(QCoreApplication.translate("SyncForm", u"CPF", None))
-        self.lbPass.setText(QCoreApplication.translate("SyncForm", u"Senha", None))
-        self.lbPassConfirm.setText(QCoreApplication.translate("SyncForm", u"Confirmar Senha", None))
-        self.lbName.setText(QCoreApplication.translate("SyncForm", u"Nome", None))
-        self.lbMessage.setText(QCoreApplication.translate("SyncForm", u"MESSAGE", None))
-        self.btnSecondary.setText(QCoreApplication.translate("SyncForm", u"secondary", None))
+        self.lbCpf.setText(QCoreApplication.translate("SyncForm", u"CPF Propriet\u00e1rio", None))
+        self.lbName.setText(QCoreApplication.translate("SyncForm", u"Nome Propriet\u00e1rio", None))
+        self.lbMessage.setText(QCoreApplication.translate("SyncForm", u"-MESSAGE-", None))
+        self.btnBack.setText(QCoreApplication.translate("SyncForm", u"voltar", None))
         self.btnContinue.setText(QCoreApplication.translate("SyncForm", u"continuar", None))
     # retranslateUi
 

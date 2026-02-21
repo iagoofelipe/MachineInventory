@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal, QThreadPool
-import time
+import time, json
 
 from .server import ServerConnection
 from . import dto
@@ -17,9 +17,14 @@ class AppModel(QObject):
         self._server = ServerConnection()
         self._isAuthenticated = False
         self._user = None
+        self._owner = None
+        self._machine = {}
         self._threadpool = QThreadPool(self)
 
     def getLastError(self): return self._server.getLastError()
+
+    def machine(self):
+        return self._machine
     
     def initialize(self):
         def func():
@@ -27,8 +32,11 @@ class AppModel(QObject):
             
             if self._isAuthenticated:
                 self._user = self._server.getUser()
+
+            with open('src/machine.json') as f:
+                self._machine = json.load(f)
             
-            time.sleep(2) # TODO: coletar dados da máquina com wmi
+            time.sleep(1) # TODO: coletar dados da máquina com wmi
         
         self._threadpool.start(Worker(func, callback=self.initializationFinished.emit))
 
@@ -38,6 +46,9 @@ class AppModel(QObject):
     def authenticatedUser(self) -> dto.UserDTO | None:
         return self._user
     
+    def ownerUser(self) -> dto.UserDTO | None:
+        return self._owner
+    
     def getUser(self, cpf_or_id:str):
         return self._server.getUser(cpf_or_id)
     
@@ -45,7 +56,7 @@ class AppModel(QObject):
         def func():
             success = self._server.generateToken(cpf, password)
             if success:
-                self._user = self._server.getUser()
+                self._owner = self._user = self._server.getUser()
                 self._isAuthenticated = True
             
             return success

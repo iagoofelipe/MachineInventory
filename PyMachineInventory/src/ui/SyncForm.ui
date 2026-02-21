@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>390</width>
-    <height>404</height>
+    <width>537</width>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -92,7 +92,7 @@
          <item>
           <widget class="QLabel" name="lbCpf">
            <property name="text">
-            <string>CPF</string>
+            <string>CPF Proprietário</string>
            </property>
           </widget>
          </item>
@@ -100,37 +100,9 @@
           <widget class="QLineEdit" name="leCpf"/>
          </item>
          <item>
-          <widget class="QLabel" name="lbPass">
-           <property name="text">
-            <string>Senha</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lePass">
-           <property name="echoMode">
-            <enum>QLineEdit::Password</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="lbPassConfirm">
-           <property name="text">
-            <string>Confirmar Senha</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lePassConfirm">
-           <property name="echoMode">
-            <enum>QLineEdit::Password</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QLabel" name="lbName">
            <property name="text">
-            <string>Nome</string>
+            <string>Nome Proprietário</string>
            </property>
           </widget>
          </item>
@@ -170,10 +142,10 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">color: rgb(173, 0, 0);</string>
+      <string notr="true">color: rgba(255, 0, 0, 255);</string>
      </property>
      <property name="text">
-      <string>MESSAGE</string>
+      <string>-MESSAGE-</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -222,9 +194,9 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="btnSecondary">
+       <widget class="QPushButton" name="btnBack">
         <property name="text">
-         <string>secondary</string>
+         <string>voltar</string>
         </property>
        </widget>
       </item>
