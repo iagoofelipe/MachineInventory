@@ -13,10 +13,12 @@ class AppController(QObject):
         self._model = AppModel.instance()
         self._view = AppView.instance()
 
+        self._model.initializationMessageChanged.connect(self._view.setLoadingMessage)
         self._model.initializationFinished.connect(self.on_AppModel_initializationFinished)
         self._model.authenticationFinished.connect(self.on_AppModel_authenticationFinished)
         self._model.newUserFinished.connect(self.on_AppModel_newUserFinished)
         self._view.uiChanged.connect(self.on_AppView_uiChanged)
+        self._view.logoutRequired.connect(self.on_AppView_logoutRequired)
 
     #------------------------------------------------------------------------
     # Métodos Públicos
@@ -32,11 +34,11 @@ class AppController(QObject):
     # Eventos AppModel
     def on_AppModel_initializationFinished(self):
         isAuth = self._model.isAuthenticated()
-        self._view.setUi(AppView.UI.MAIN if isAuth else AppView.UI.AUTH)
+        self._view.setUi(AppView.UI_MAIN if isAuth else AppView.UI_AUTH)
         
     def on_AppModel_authenticationFinished(self, success:bool):
         if success:
-            self._view.setUi(AppView.UI.MAIN)
+            self._view.setUi(AppView.UI_MAIN)
         else:
             form = self._view.authForm()
             form.showMessage(self._model.getLastError())
@@ -52,20 +54,32 @@ class AppController(QObject):
 
     #------------------------------------------------------------------------
     # Eventos AppView    
-    def on_AppView_uiChanged(self, ui:AppView.UI):
-        match ui:
-            case AppView.UI.MAIN:
-                form = self._view.syncForm()
-                # form.authenticationRequired.connect(self._model.auth)
-                # form.newUserRequired.connect(self._model.newUser)
-                form.syncRequired.connect(self.on_SyncForm_syncRequired)
+    def on_AppView_uiChanged(self, ui:int):
+        # if ui & AppView.UI_LOADING: ...
+        # if ui & AppView.UI_MACHINE: ...
+        
+        if ui & AppView.UI_AUTH:
+            form = self._view.authForm()
+            form.authenticationRequired.connect(self._model.auth)
+            form.createAccountRequired.connect(self._model.newUser)
+            form.machineDataReadOnlyRequired.connect(self.on_AuthForm_machineDataReadOnlyRequired)
 
-            case AppView.UI.AUTH:
-                form = self._view.authForm()
-                form.authenticationRequired.connect(self._model.auth)
-                form.createAccountRequired.connect(self._model.newUser)
+        if ui & AppView.UI_SYNC:
+            form = self._view.syncForm()
+            form.syncRequired.connect(self.on_SyncForm_syncRequired)
+
+    def on_AppView_logoutRequired(self):
+        self._model.logout()
+        self._view.setUi(AppView.UI_AUTH)
 
     #------------------------------------------------------------------------
-
+    # Eventos SyncForm    
     def on_SyncForm_syncRequired(self, owner:dto.UserDTO):
         print('Syncronization required to owner', owner)
+
+    #------------------------------------------------------------------------
+    # Eventos AuthForm
+    def on_AuthForm_machineDataReadOnlyRequired(self):
+        self._view.setUi(AppView.UI_MACHINE)
+    
+    #------------------------------------------------------------------------

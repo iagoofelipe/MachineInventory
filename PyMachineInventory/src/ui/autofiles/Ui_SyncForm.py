@@ -128,6 +128,10 @@ class Ui_SyncForm(object):
 
         self.verticalLayout.addWidget(self.widBtns)
 
+        QWidget.setTabOrder(self.checkBox, self.leCpf)
+        QWidget.setTabOrder(self.leCpf, self.leName)
+        QWidget.setTabOrder(self.leName, self.btnBack)
+        QWidget.setTabOrder(self.btnBack, self.btnContinue)
 
         self.retranslateUi(SyncForm)
 

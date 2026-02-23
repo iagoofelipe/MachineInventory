@@ -21,3 +21,23 @@ std::string ToString(const std::wstring& wstr) {
     WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
     return strTo;
 }
+
+void StripWString(std::wstring* str) {
+    const wchar_t* whitespace = L" \t\n\r\f\v";
+    size_t last = str->find_last_not_of(whitespace);
+
+    if (last != std::wstring::npos)
+        str->erase(last + 1);
+    else
+        str->clear();
+}
+
+void StripString(std::string* str) {
+    const char* whitespace = " \t\n\r\f\v";
+    size_t last = str->find_last_not_of(whitespace);
+
+    if (last != std::string::npos)
+        str->erase(last + 1);
+    else
+        str->clear();
+}

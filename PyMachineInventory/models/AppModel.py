@@ -1,42 +1,51 @@
 from PySide6.QtCore import QObject, Signal, QThreadPool
 import time, json
 
-from .server import ServerConnection
+from .api.server import ServerAPI
 from . import dto
-from tools.utils import Worker
+from . import structs
+from tools.utils import Worker, get_machine_data
 
 class AppModel(QObject):
     _instance = None # instanciado por MachineInventoryApp
 
     initializationFinished = Signal()
+    initializationMessageChanged = Signal(str)
     authenticationFinished = Signal(bool)
     newUserFinished = Signal(bool)
 
     def __init__(self):
         super().__init__()
-        self._server = ServerConnection()
+        self._server = ServerAPI()
+        self._machine = None
         self._isAuthenticated = False
         self._user = None
         self._owner = None
-        self._machine = {}
         self._threadpool = QThreadPool(self)
 
     def getLastError(self): return self._server.getLastError()
 
-    def machine(self):
+    def machine(self) -> structs.Machine:
         return self._machine
+    
+    def logout(self):
+        self._isAuthenticated = False
+        self._user = None
+        self._owner = None
+        self._server.logout()
     
     def initialize(self):
         def func():
+            self.initializationMessageChanged.emit('coletando dados do servidor...')
             self._isAuthenticated = self._server.readToken() and self._server.validateToken()
             
             if self._isAuthenticated:
+                self.initializationMessageChanged.emit('coletando dados do usuário autenticado...')
                 self._user = self._server.getUser()
 
-            with open('src/machine.json') as f:
-                self._machine = json.load(f)
-            
-            time.sleep(1) # TODO: coletar dados da máquina com wmi
+            self.initializationMessageChanged.emit('coletando dados da máquina...')
+            self._machine = get_machine_data()
+            self.initializationMessageChanged.emit('inicialização finalizada')
         
         self._threadpool.start(Worker(func, callback=self.initializationFinished.emit))
 

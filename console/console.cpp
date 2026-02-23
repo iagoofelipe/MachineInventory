@@ -3,6 +3,8 @@
 #include "utils.h"
 
 #include <iostream>
+#include <fcntl.h>  // Necessario para _O_U16TEXT
+#include <io.h>     // Necessario para _setmode
 
 static bool machine_data_required;
 static sysinfo::machine machine;
@@ -46,7 +48,8 @@ void show_help()
 
 bool init_console(const std::wstring_view& command)
 {
-    configure_terminal();
+    _setmode(_fileno(stdin), _O_WTEXT);    // configura UTF-16 para std::wcin
+    _setmode(_fileno(stdout), _O_U16TEXT); // configura UTF-16 para std::wcout
 
     machine_data_required = command == L"sysinfo" || command == L"upload";
     json_machine = NULL;
@@ -87,7 +90,48 @@ void cleanup()
 
 int command_sysinfo()
 {
-    std::wcout << cJSON_Print(json_machine) << std::endl;
+    std::wcout
+        << "Operating System: '" << machine.osName << "'\n" 
+        << "Architecture: '" << machine.osArchitecture << "'\n"
+        << "Install Date: '" << machine.osInstallDate << "'\n"
+        << "Version: '" << machine.osVersion << "'\n"
+        << "Serial Number: '" << machine.osSerialNumber << "'\n"
+        << "Organization: '" << machine.osOrganization << "'\n"
+        << "Motherboard: '" << machine.motherboardName << "'\n"
+        << "Motherboard Manufacturer: '" << machine.motherboardManufacturer << "'\n"
+        << "Processor: '" << machine.processorName << "'\n"
+        << "Processor Clock Speed: " << machine.processorClockSpeed / 1000 << " GHz\n"
+        << "Disks ("<< machine.disks.size() << "):\n";
+        
+    for (const sysinfo::disk& disk : machine.disks)
+        std::wcout
+            << "\tDisk(Name='" << disk.name << "' "
+            << "SerialNumber='" << disk.seriaNumber << "' "
+            << "Size=" << disk.size << " "
+            << "Model='" << disk.model << "')\n";
+
+    std::wcout << "Metwork Adapters ("<< machine.network_adapters.size() << "):\n";
+    for (const sysinfo::network_adapter& adapter : machine.network_adapters)
+        std::wcout
+            << "\tNetworkAdapter(Name='" << adapter.name << "' "
+            << "Mac='" << adapter.mac << "')\n";
+
+    std::wcout << "Physical Memories ("<< machine.physical_memories.size() << "):\n";
+    for (const sysinfo::physical_memory& memory : machine.physical_memories)
+        std::wcout
+            << "\tPhysicalMemory((Name='" << memory.name << "' "
+            << "Capacity=" << memory.capacity << " "
+            << "Speed=" << memory.speed << ")\n";
+
+    std::wcout << "Programs ("<< machine.programs.size() << "):\n";
+    for (const sysinfo::program& program : machine.programs)
+        std::wcout
+            << "\tProgram(Name='" << program.DisplayName << "' "
+            << "Version='" << program.DisplayVersion << "' "
+            << "Publisher='" << program.Publisher << "' "
+            << "EstimatedSize=" << program.EstimatedSize << " "
+            << "CurrentUserOnly=" << (program.CurrentUserOnly? "True" : "False") << ")\n";
+
     return 0;
 }
 

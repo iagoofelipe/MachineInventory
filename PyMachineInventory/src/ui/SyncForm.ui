@@ -212,6 +212,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>checkBox</tabstop>
+  <tabstop>leCpf</tabstop>
+  <tabstop>leName</tabstop>
+  <tabstop>btnBack</tabstop>
+  <tabstop>btnContinue</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -30,9 +30,9 @@ static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flag
     // variaveis para consulta
     DWORD dwType;
     WCHAR wValue[255];
-    DWORD wSize = sizeof(wValue);
+    DWORD wSize;
     DWORD dwValue;
-    DWORD dwSize = sizeof(dwValue);
+    DWORD dwSize;
 
     // caso seja um componente de software e IGNORE_SUBSOFTWARE esteja definido
     if ((flags & sysinfo::IGNORE_SUBSOFTWARE) && (RegQueryValueExW(hKey, L"ParentKeyName", NULL, NULL, NULL, NULL) == ERROR_SUCCESS)) {
@@ -41,6 +41,7 @@ static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flag
     }
 
     // DisplayName
+    wSize = sizeof(wValue);
     status = RegQueryValueExW(hKey, L"DisplayName", NULL, &dwType, (LPBYTE)wValue, &wSize);
 
     // caso DisplayName venha em branco e IGNORE_EMPTY esteja definido
@@ -53,14 +54,17 @@ static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flag
 
 
     // DisplayVersion
+    wSize = sizeof(wValue);
     status = RegQueryValueExW(hKey, L"DisplayVersion", NULL, &dwType, (LPBYTE)wValue, &wSize);
     p->DisplayVersion = status == ERROR_SUCCESS && dwType == REG_SZ ? wValue : L"";
 
     // Publisher
+    wSize = sizeof(wValue);
     status = RegQueryValueExW(hKey, L"Publisher", NULL, &dwType, (LPBYTE)wValue, &wSize);
     p->Publisher = status == ERROR_SUCCESS && dwType == REG_SZ ? wValue : L"";
 
     // EstimatedSize
+    dwSize = sizeof(dwValue);
     status = RegQueryValueExW(hKey, L"EstimatedSize", NULL, &dwType, (LPBYTE)&dwValue, &dwSize);
     p->EstimatedSize = status == ERROR_SUCCESS && dwType == REG_DWORD ? dwValue : 0;
 
@@ -452,6 +456,8 @@ bool sysinfo::get_processor(std::wstring* name, long* clock_speed)
 
     *name = row[0].vt == VT_BSTR ? row[0].bstrVal : L"";
     *clock_speed = row[1].vt == VT_I4 ? row[1].lVal : 0;
+
+    StripWString(name);
 
     clear_variants(variants);
     return true;

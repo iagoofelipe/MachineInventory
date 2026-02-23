@@ -14,15 +14,8 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="1,2,1">
-   <item row="12" column="1">
-    <widget class="QPushButton" name="btnAccess">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>acessar</string>
-     </property>
-    </widget>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="leCpf"/>
    </item>
    <item row="2" column="1">
     <widget class="QLabel" name="label">
@@ -35,35 +28,6 @@
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Senha</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="leCpf"/>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLineEdit" name="lePass">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="echoMode">
-      <enum>QLineEdit::Password</enum>
-     </property>
-     <property name="readOnly">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="1">
-    <widget class="QLabel" name="lbMessage">
-     <property name="styleSheet">
-      <string notr="true">color: red;</string>
-     </property>
-     <property name="text">
-      <string>-MESSAGE-</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>
@@ -97,19 +61,6 @@
      </property>
     </spacer>
    </item>
-   <item row="13" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
    <item row="0" column="2">
     <spacer name="horizontalSpacer_2">
      <property name="orientation">
@@ -123,6 +74,59 @@
      </property>
     </spacer>
    </item>
+   <item row="16" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="7" column="1">
+    <widget class="QLineEdit" name="lePass">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
+     </property>
+     <property name="readOnly">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLabel" name="lbMessage">
+     <property name="styleSheet">
+      <string notr="true">color: red;</string>
+     </property>
+     <property name="text">
+      <string>-MESSAGE-</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLabel" name="lbName">
+     <property name="text">
+      <string>Nome</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QPushButton" name="btnCreateAccount">
+     <property name="text">
+      <string>criar conta</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <spacer name="horizontalSpacer">
      <property name="orientation">
@@ -135,20 +139,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="4" column="1">
-    <widget class="QLabel" name="lbName">
-     <property name="text">
-      <string>Nome</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="1">
-    <widget class="QPushButton" name="btnCreateAccount">
-     <property name="text">
-      <string>criar conta</string>
-     </property>
-    </widget>
    </item>
    <item row="5" column="1">
     <widget class="QLineEdit" name="leName"/>
@@ -167,8 +157,42 @@
      </property>
     </widget>
    </item>
+   <item row="14" column="1">
+    <widget class="QPushButton" name="btnMachineData">
+     <property name="text">
+      <string>dados da máquina (leitura)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <widget class="QPushButton" name="btnAccess">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>acessar</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <widget class="QPushButton" name="btnBack">
+     <property name="text">
+      <string>voltar</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>leCpf</tabstop>
+  <tabstop>leName</tabstop>
+  <tabstop>lePass</tabstop>
+  <tabstop>lePassConfirm</tabstop>
+  <tabstop>btnAccess</tabstop>
+  <tabstop>btnCreateAccount</tabstop>
+  <tabstop>btnBack</tabstop>
+  <tabstop>btnMachineData</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -2,6 +2,10 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import QRunnable, Slot
 from dataclasses import fields
 from typing import Iterable
+from models import structs
+import wmi
+import datetime as dt
+import logging as log
 
 class Worker(QRunnable):
     def __init__(self, func, *args, callback=None, use_return=False, **kwargs):
@@ -38,3 +42,60 @@ def set_unenabled(widgets:Iterable[QWidget], unenabled=True):
             wid.setEnabled(True)
     
     return changes
+
+def get_machine_data():
+    wmi_obj = wmi.WMI()
+    os = wmi_obj.Win32_OperatingSystem()[0]
+    motherboard = wmi_obj.Win32_BaseBoard()[0]
+    processor = wmi_obj.Win32_Processor()[0]
+
+    machine = structs.Machine(
+        os.Caption,
+        os.OSArchitecture,
+        dt.datetime.strptime(os.InstallDate.split('.')[0], '%Y%m%d%H%M%S'),
+        os.Version,
+        os.SerialNumber,
+        os.Organization,
+        motherboard.Product,
+        motherboard.Manufacturer,
+        processor.Name.strip() if type(processor.Name) is str else None,
+        processor.CurrentClockSpeed,
+        [ structs.Disk(x.Caption, x.SerialNumber, x.Size, x.Model) for x in wmi_obj.Win32_DiskDrive() ],
+        [ structs.NetworkAdapter(x.Name, x.MACAddress) for x in wmi_obj.Win32_NetworkAdapter() if x.MACAddress ],
+        [ structs.PhysicalMemory(x.Tag, x.Capacity, x.Speed) for x in wmi_obj.Win32_PhysicalMemory() ],
+        [ ],
+    )
+
+    # coletando programas
+    HKCU = 0x80000001
+    HKLM = 0x80000002
+    root_subkey = r'Software\Microsoft\Windows\CurrentVersion\Uninstall'
+    reg = wmi_obj.StdRegProv
+    values = [ 
+        ('name', 'DisplayName'),
+        ('version', 'DisplayVersion'),
+        ('publisher', 'Publisher'),
+        ('estimatedSize', 'EstimatedSize'),
+    ]
+
+    for key in (HKLM, HKCU):
+        result, subkeys = reg.EnumKey(hDefKey=key, sSubKeyName=root_subkey)
+
+        if result != 0 or subkeys is None:
+            log.error(f'não foi possível extrair as subchaves do root {key}')
+            continue
+
+        for s in subkeys:
+            subkey = fr'{root_subkey}\{s}'
+            program = structs.Program('', '', '', 0, key == HKCU)
+
+            for field, value in values:
+                getter = reg.GetDWORDValue if value == 'EstimatedSize' else reg.GetStringValue
+                default = 0 if value == 'EstimatedSize' else ''
+                result, value = getter(hDefKey=key, sSubKeyName=subkey, sValueName=value)
+                setattr(program, field, value if result == 0 else default)
+            
+            if program.name:
+                machine.programs.append(program)
+
+    return machine

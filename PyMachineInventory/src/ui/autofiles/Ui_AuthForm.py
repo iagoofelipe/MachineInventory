@@ -25,11 +25,10 @@ class Ui_AuthForm(object):
         AuthForm.resize(623, 496)
         self.gridLayout = QGridLayout(AuthForm)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.btnAccess = QPushButton(AuthForm)
-        self.btnAccess.setObjectName(u"btnAccess")
-        self.btnAccess.setEnabled(True)
+        self.leCpf = QLineEdit(AuthForm)
+        self.leCpf.setObjectName(u"leCpf")
 
-        self.gridLayout.addWidget(self.btnAccess, 12, 1, 1, 1)
+        self.gridLayout.addWidget(self.leCpf, 3, 1, 1, 1)
 
         self.label = QLabel(AuthForm)
         self.label.setObjectName(u"label")
@@ -41,10 +40,27 @@ class Ui_AuthForm(object):
 
         self.gridLayout.addWidget(self.label_2, 6, 1, 1, 1)
 
-        self.leCpf = QLineEdit(AuthForm)
-        self.leCpf.setObjectName(u"leCpf")
+        self.label_3 = QLabel(AuthForm)
+        self.label_3.setObjectName(u"label_3")
+        font = QFont()
+        font.setPointSize(15)
+        font.setBold(False)
+        self.label_3.setFont(font)
+        self.label_3.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout.addWidget(self.leCpf, 3, 1, 1, 1)
+        self.gridLayout.addWidget(self.label_3, 1, 1, 1, 1)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.gridLayout.addItem(self.verticalSpacer_2, 0, 1, 1, 1)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer_2, 0, 2, 1, 1)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.gridLayout.addItem(self.verticalSpacer, 16, 1, 1, 1)
 
         self.lePass = QLineEdit(AuthForm)
         self.lePass.setObjectName(u"lePass")
@@ -61,32 +77,6 @@ class Ui_AuthForm(object):
 
         self.gridLayout.addWidget(self.lbMessage, 10, 1, 1, 1)
 
-        self.label_3 = QLabel(AuthForm)
-        self.label_3.setObjectName(u"label_3")
-        font = QFont()
-        font.setPointSize(15)
-        font.setBold(False)
-        self.label_3.setFont(font)
-        self.label_3.setAlignment(Qt.AlignCenter)
-
-        self.gridLayout.addWidget(self.label_3, 1, 1, 1, 1)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.gridLayout.addItem(self.verticalSpacer_2, 0, 1, 1, 1)
-
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.gridLayout.addItem(self.verticalSpacer, 13, 1, 1, 1)
-
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer_2, 0, 2, 1, 1)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer, 0, 0, 1, 1)
-
         self.lbName = QLabel(AuthForm)
         self.lbName.setObjectName(u"lbName")
 
@@ -95,7 +85,11 @@ class Ui_AuthForm(object):
         self.btnCreateAccount = QPushButton(AuthForm)
         self.btnCreateAccount.setObjectName(u"btnCreateAccount")
 
-        self.gridLayout.addWidget(self.btnCreateAccount, 11, 1, 1, 1)
+        self.gridLayout.addWidget(self.btnCreateAccount, 12, 1, 1, 1)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer, 0, 0, 1, 1)
 
         self.leName = QLineEdit(AuthForm)
         self.leName.setObjectName(u"leName")
@@ -113,9 +107,32 @@ class Ui_AuthForm(object):
 
         self.gridLayout.addWidget(self.lePassConfirm, 9, 1, 1, 1)
 
+        self.btnMachineData = QPushButton(AuthForm)
+        self.btnMachineData.setObjectName(u"btnMachineData")
+
+        self.gridLayout.addWidget(self.btnMachineData, 14, 1, 1, 1)
+
+        self.btnAccess = QPushButton(AuthForm)
+        self.btnAccess.setObjectName(u"btnAccess")
+        self.btnAccess.setEnabled(True)
+
+        self.gridLayout.addWidget(self.btnAccess, 11, 1, 1, 1)
+
+        self.btnBack = QPushButton(AuthForm)
+        self.btnBack.setObjectName(u"btnBack")
+
+        self.gridLayout.addWidget(self.btnBack, 13, 1, 1, 1)
+
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 2)
         self.gridLayout.setColumnStretch(2, 1)
+        QWidget.setTabOrder(self.leCpf, self.leName)
+        QWidget.setTabOrder(self.leName, self.lePass)
+        QWidget.setTabOrder(self.lePass, self.lePassConfirm)
+        QWidget.setTabOrder(self.lePassConfirm, self.btnAccess)
+        QWidget.setTabOrder(self.btnAccess, self.btnCreateAccount)
+        QWidget.setTabOrder(self.btnCreateAccount, self.btnBack)
+        QWidget.setTabOrder(self.btnBack, self.btnMachineData)
 
         self.retranslateUi(AuthForm)
 
@@ -124,13 +141,15 @@ class Ui_AuthForm(object):
 
     def retranslateUi(self, AuthForm):
         AuthForm.setWindowTitle(QCoreApplication.translate("AuthForm", u"Form", None))
-        self.btnAccess.setText(QCoreApplication.translate("AuthForm", u"acessar", None))
         self.label.setText(QCoreApplication.translate("AuthForm", u"CPF", None))
         self.label_2.setText(QCoreApplication.translate("AuthForm", u"Senha", None))
-        self.lbMessage.setText(QCoreApplication.translate("AuthForm", u"-MESSAGE-", None))
         self.label_3.setText(QCoreApplication.translate("AuthForm", u"Invent\u00e1rio de M\u00e1quinas", None))
+        self.lbMessage.setText(QCoreApplication.translate("AuthForm", u"-MESSAGE-", None))
         self.lbName.setText(QCoreApplication.translate("AuthForm", u"Nome", None))
         self.btnCreateAccount.setText(QCoreApplication.translate("AuthForm", u"criar conta", None))
         self.lbPassConfirm.setText(QCoreApplication.translate("AuthForm", u"Confirmar Senha", None))
+        self.btnMachineData.setText(QCoreApplication.translate("AuthForm", u"dados da m\u00e1quina (leitura)", None))
+        self.btnAccess.setText(QCoreApplication.translate("AuthForm", u"acessar", None))
+        self.btnBack.setText(QCoreApplication.translate("AuthForm", u"voltar", None))
     # retranslateUi
 

@@ -7,12 +7,13 @@ from .AbstractForm import AbstractForm
 
 class AuthForm(AbstractForm):
     # AbstractForm Params
-    WIDGETS_TO_BLOCK = [ 'leCpf', 'leName', 'lePass', 'lePassConfirm', 'btnAccess', 'btnCreateAccount' ]
+    WIDGETS_TO_BLOCK = [ 'leCpf', 'leName', 'lePass', 'lePassConfirm', 'btnAccess', 'btnCreateAccount', 'btnBack', 'btnMachineData' ]
     WIDGETS_TO_CLEAR = [ 'leCpf', 'leName', 'lePass', 'lePassConfirm', 'lbMessage' ]
 
     # Events
     authenticationRequired = Signal(str, str) # CPF, password
     createAccountRequired = Signal(NewUserDTO)
+    machineDataReadOnlyRequired = Signal()
 
     # AuthForm Params
     STATE_AUTH = 0
@@ -27,8 +28,14 @@ class AuthForm(AbstractForm):
         self.LABEL_MESSAGE = self._ui.lbMessage
 
         # eventos
+        self._ui.lePass.returnPressed.connect(self.on_LineEdit_returnPressed)
+        self._ui.lePassConfirm.returnPressed.connect(self.on_LineEdit_returnPressed)
+        self._ui.leCpf.returnPressed.connect(self.on_LineEdit_returnPressed)
+        self._ui.leName.returnPressed.connect(self.on_LineEdit_returnPressed)
         self._ui.btnAccess.clicked.connect(self.on_btnAccess_clicked)
         self._ui.btnCreateAccount.clicked.connect(self.on_btnCreateAccount_clicked)
+        self._ui.btnMachineData.clicked.connect(self.machineDataReadOnlyRequired)
+        self._ui.btnBack.clicked.connect(self.on_btnBack_clicked)
 
         self.setState(state)
 
@@ -50,6 +57,10 @@ class AuthForm(AbstractForm):
                 self._ui.lePassConfirm.hide()
                 self._ui.lbPassConfirm.hide()
                 self._ui.btnAccess.show()
+                self._ui.btnMachineData.show()
+                self._ui.btnBack.hide()
+
+                QTimer.singleShot(0, self._ui.leCpf.setFocus)
             
             case self.STATE_CREATE_ACCOUNT:
                 self._ui.leName.show()
@@ -57,7 +68,10 @@ class AuthForm(AbstractForm):
                 self._ui.lePassConfirm.show()
                 self._ui.lbPassConfirm.show()
                 self._ui.btnAccess.hide()
+                self._ui.btnMachineData.hide()
+                self._ui.btnBack.show()
 
+                QTimer.singleShot(0, self._ui.leCpf.setFocus)
 
     #--------------------------------------------------------------------------
     # Eventos
@@ -93,5 +107,14 @@ class AuthForm(AbstractForm):
         
         self.blockChanges()
         self.authenticationRequired.emit(cpf, password)
+
+    def on_LineEdit_returnPressed(self):
+        if self._state == self.STATE_AUTH:
+            self._ui.btnAccess.click()
+        elif self._state == self.STATE_CREATE_ACCOUNT:
+            self._ui.btnCreateAccount.click()
+
+    def on_btnBack_clicked(self):
+        self.setState(self.STATE_AUTH)
 
     #--------------------------------------------------------------------------
