@@ -1,22 +1,25 @@
 from PySide6.QtCore import QObject, Signal
 
 from models.AppModel import AppModel
-from models import dto
+from models import structs
 from views.AppView import AppView
-from views.forms.SyncForm import SyncForm
 
 class AppController(QObject):
-    _instance = None # instanciado por MachineInventoryApp
+    _instance = None
 
     def __init__(self):
         super().__init__()
         self._model = AppModel.instance()
         self._view = AppView.instance()
 
+        # eventos AppModel
         self._model.initializationMessageChanged.connect(self._view.setLoadingMessage)
         self._model.initializationFinished.connect(self.on_AppModel_initializationFinished)
         self._model.authenticationFinished.connect(self.on_AppModel_authenticationFinished)
         self._model.newUserFinished.connect(self.on_AppModel_newUserFinished)
+        self._model.syncMachineFinished.connect(self.on_AppModel_syncMachineFinished)
+        
+        # eventos AppView
         self._view.uiChanged.connect(self.on_AppView_uiChanged)
         self._view.logoutRequired.connect(self.on_AppView_logoutRequired)
 
@@ -27,7 +30,9 @@ class AppController(QObject):
         self._model.initialize()
 
     @classmethod
-    def instance(cls) -> 'AppController':
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
         return cls._instance
     
     #------------------------------------------------------------------------
@@ -52,6 +57,12 @@ class AppController(QObject):
             form.showMessage(self._model.getLastError())
             form.blockChanges(False)
 
+    def on_AppModel_syncMachineFinished(self, success:bool):
+        form = self._view.syncForm()
+        msg = 'Dados sincronizados com êxito!' if success else self._model.getLastError()
+        form.blockChanges(False)
+        form.showMessage(msg)
+
     #------------------------------------------------------------------------
     # Eventos AppView    
     def on_AppView_uiChanged(self, ui:int):
@@ -66,16 +77,11 @@ class AppController(QObject):
 
         if ui & AppView.UI_SYNC:
             form = self._view.syncForm()
-            form.syncRequired.connect(self.on_SyncForm_syncRequired)
+            form.syncRequired.connect(self._model.syncMachine)
 
     def on_AppView_logoutRequired(self):
         self._model.logout()
         self._view.setUi(AppView.UI_AUTH)
-
-    #------------------------------------------------------------------------
-    # Eventos SyncForm    
-    def on_SyncForm_syncRequired(self, owner:dto.UserDTO):
-        print('Syncronization required to owner', owner)
 
     #------------------------------------------------------------------------
     # Eventos AuthForm

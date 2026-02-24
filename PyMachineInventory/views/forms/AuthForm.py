@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal, QTimer
 
 from src.ui.autofiles.Ui_AuthForm import Ui_AuthForm
-from models.dto import NewUserDTO
+from models.structs import NewUser
 from .AbstractForm import AbstractForm
 
 class AuthForm(AbstractForm):
@@ -12,7 +12,7 @@ class AuthForm(AbstractForm):
 
     # Events
     authenticationRequired = Signal(str, str) # CPF, password
-    createAccountRequired = Signal(NewUserDTO)
+    createAccountRequired = Signal(NewUser)
     machineDataReadOnlyRequired = Signal()
 
     # AuthForm Params
@@ -95,7 +95,7 @@ class AuthForm(AbstractForm):
                     return
 
                 self.blockChanges()
-                self.createAccountRequired.emit(NewUserDTO(cpf, password, name))
+                self.createAccountRequired.emit(NewUser(cpf, password, name))
 
     def on_btnAccess_clicked(self):
         cpf = self._ui.leCpf.text()

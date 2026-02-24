@@ -2,6 +2,19 @@ from dataclasses import dataclass
 import datetime as dt
 
 @dataclass
+class NewUser:
+    cpf: str
+    password: str
+    name: str
+
+@dataclass
+class User:
+    id: str
+    cpf: str
+    name: str
+    rules: list[str]
+
+@dataclass
 class Disk:
     name: str
     seriaNumber: str

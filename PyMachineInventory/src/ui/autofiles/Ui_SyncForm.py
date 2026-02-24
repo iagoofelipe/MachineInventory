@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'SyncForm.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.2
+## Created by: Qt User Interface Compiler version 6.10.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -78,6 +78,16 @@ class Ui_SyncForm(object):
 
         self.verticalLayout_3.addWidget(self.leName)
 
+        self.lbMachineTitle = QLabel(self.widget_2)
+        self.lbMachineTitle.setObjectName(u"lbMachineTitle")
+
+        self.verticalLayout_3.addWidget(self.lbMachineTitle)
+
+        self.leMachineTitle = QLineEdit(self.widget_2)
+        self.leMachineTitle.setObjectName(u"leMachineTitle")
+
+        self.verticalLayout_3.addWidget(self.leMachineTitle)
+
 
         self.horizontalLayout_2.addWidget(self.widget_2)
 
@@ -144,6 +154,7 @@ class Ui_SyncForm(object):
         self.checkBox.setText(QCoreApplication.translate("SyncForm", u"Cadastrar m\u00e1quina de outro usu\u00e1rio", None))
         self.lbCpf.setText(QCoreApplication.translate("SyncForm", u"CPF Propriet\u00e1rio", None))
         self.lbName.setText(QCoreApplication.translate("SyncForm", u"Nome Propriet\u00e1rio", None))
+        self.lbMachineTitle.setText(QCoreApplication.translate("SyncForm", u"T\u00edtulo da M\u00e1quina", None))
         self.lbMessage.setText(QCoreApplication.translate("SyncForm", u"-MESSAGE-", None))
         self.btnBack.setText(QCoreApplication.translate("SyncForm", u"voltar", None))
         self.btnContinue.setText(QCoreApplication.translate("SyncForm", u"continuar", None))

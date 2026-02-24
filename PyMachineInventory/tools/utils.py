@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import QRunnable, Slot
-from dataclasses import fields
+from dataclasses import fields, is_dataclass
 from typing import Iterable
 from models import structs
 import wmi
@@ -23,10 +23,23 @@ class Worker(QRunnable):
             if self._cb:
                 self._cb(r) if self._return else self._cb()
         except Exception as e:
-            print(f'Worker Thread Error: {e}')
+            log.error(f'Worker Thread Error: {e}')
 
-def dataclass_to_dict(instance:object):
-    return { f.name: getattr(instance, f.name) for f in fields(instance) }
+def dataclass_to_dict(instance:object, recursive=False, **extra):
+    d = {}
+
+    for f in fields(instance):
+        name = f.name
+        val = extra[name] if name in extra else getattr(instance, name)
+
+        if recursive and type(val) is list:
+            val = list(map(lambda v: dataclass_to_dict(v) if is_dataclass(v) else v, val))
+
+        d[name] = val
+    
+    d.update(extra)
+    
+    return d
 
 def set_unenabled(widgets:Iterable[QWidget], unenabled=True):
     changes = []
@@ -99,3 +112,13 @@ def get_machine_data():
                 machine.programs.append(program)
 
     return machine
+
+def get_default_mac(values:list[structs.NetworkAdapter]):
+    for v in values:
+        name = v.name.lower()
+        if 'ethernet' in name or 'realtek' in name:
+            return v.mac
+    
+    # caso não haja nenhuma correspondência, retorna o primeiro
+    with_mac = list(filter(lambda v: v.mac, values))
+    return with_mac[0].mac if with_mac else ''

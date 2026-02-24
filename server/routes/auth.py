@@ -27,6 +27,6 @@ def post_auth():
     return flask.jsonify(token=generate_token(user.id, dt.timedelta(days=1)))
 
 @auth_bp.route('/auth/validateToken')
-@token_required()
-def get_validate_token():
+@token_required(return_user_instance=True)
+def get_validate_token(user):
     return flask.jsonify(message='Token válido')

@@ -10,10 +10,11 @@
 import flask
 import logging as log
 import datetime as dt
+from sqlalchemy import desc
 
 from models.database import db
 from models.user import User
-from models.machine import Machine, MachineExtra
+from models.machine import *
 from tools.utils import get_default_mac, token_required
 
 machine_bp = flask.Blueprint('machine', __name__)
@@ -61,7 +62,6 @@ def post_machine(logged_user:User):
             )
 
             db.session.add(machine)
-            db.session.commit()
 
         new_version = MachineExtra(
             os=data['os'],
@@ -77,8 +77,42 @@ def post_machine(logged_user:User):
             processor_clock_speed=data.get('processorClockSpeed'),
             machine=machine,
         )
-
         db.session.add(new_version)
+
+        for disk in data.get('disks', []):
+            db.session.add(MachineDisk(
+                name=disk['name'],
+                serialNumber=disk.get('serialNumber'),
+                size=disk['size'],
+                model=disk.get('model'),
+                machine_extra=new_version,
+            ))
+
+        for adapter in data.get('networkAdapters', []):
+            db.session.add(MachineNetworkAdapter(
+                name=adapter['name'],
+                mac=adapter['mac'],
+                machine_extra=new_version,
+            ))
+
+        for memory in data.get('physicalMemories', []):
+            db.session.add(MachinePhysicalMemory(
+                name=memory['name'],
+                capacity=memory['capacity'],
+                speed=memory['speed'],
+                machine_extra=new_version,
+            ))
+
+        for program in data.get('programs', []):
+            db.session.add(MachineProgram(
+                name=program['name'],
+                publisher=program.get('publisher'),
+                version=program.get('version'),
+                estimatedSize=program['estimatedSize'],
+                currentUserOnly=program['currentUserOnly'],
+                machine_extra=new_version,
+            ))
+        
         db.session.commit()
     
     except KeyError:
@@ -94,17 +128,22 @@ def post_machine(logged_user:User):
 
     return flask.jsonify(machine.dto(versions=True, owner=True))
 
-@machine_bp.route('/machine/<id>')
+@machine_bp.route('/machine/<ident>')
 @token_required(return_user_instance=True)
-def get_machine(user:User, id:str):
-    machine = Machine.query.get(id)
+def get_machine(user:User, ident:str):
+    machine = Machine.query.filter((Machine.mac == ident) | (Machine.id == ident)).first()
     if not machine:
         return flask.jsonify(message="máquina não encontrada!"), 404
 
     if user.id != machine.owner.id and not user.check_rule(User.RULE_QUERY_OTHER_USERS):
         return flask.jsonify(message="você não possui autorização para fazer esta requisição"), 401
+    
+    currentVersion = db.session.query(MachineExtra) \
+        .filter(MachineExtra.machine_id == machine.id) \
+        .order_by(desc(MachineExtra.config_date)) \
+        .first()
 
-    return flask.jsonify(machine.dto(versions=True, owner=True))
+    return flask.jsonify(currentVersion.dto(machine=True, optimized_programs=True))
 
 @machine_bp.route('/machines')
 @token_required(return_user_id=True)
@@ -126,6 +165,5 @@ def get_machines(user:User, ident:str):
         
     else:
         owner = user
-
 
     return flask.jsonify(userId=owner.id, userName=owner.name, machines=[m.dto(versions=True) for m in owner.machines])

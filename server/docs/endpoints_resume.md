@@ -130,25 +130,28 @@
 
 > Nota: Permissão `ADD_MACHINE` necessária caso **owner_id** ou **owner_cpf** seja fornecido
 
-| Parâmetro | Tipo | Obrigatório | Local | Padrão |
-| --- | --- | --- | --- | --- |
+| Parâmetro | Tipo | Local | Padrão |
+| --- | --- | --- | --- |
 | **obrigatórios** |
-| Authorization | Bearer Token | Sim | Header | - | 
-| ownerId | string | Sim | Body | `AUTHENTICATED_USER_ID` | 
-| networkAdapters | [networkAdapter[]](#networkadapter) | Sim | Body | - |
-| os | string | Sim | Body | - |
-| title | string | Sim | Body | - |
+| Authorization | Bearer Token | Header | - | 
+| ownerId | string | Body | `AUTHENTICATED_USER_ID` | 
+| networkAdapters | [networkAdapter[]](#networkadapter) | Body | - |
+| os | string | Body | - |
+| title | string | Body | - |
 | **opcionais** |
-| ownerCpf | string | Não | Body | - |
-| osArchitecture | string | Não | Body | - |
-| osInstallDate | datetime | Não | Body | - |
-| osVersion | string | Não | Body | - |
-| osSerialNumber | string | Não | Body | - |
-| organization | string | Não | Body | - |
-| motherboard | string | Não | Body | - |
-| motherboardManufacturer | string | Não | Body | - |
-| processor | string | Não | Body | - |
-| processorClockSpeed | integer | Não | Body | - |
+| ownerCpf | string | Body | - |
+| osArchitecture | string | Body | - |
+| osInstallDate | datetime | Body | - |
+| osVersion | string | Body | - |
+| osSerialNumber | string | Body | - |
+| organization | string | Body | - |
+| motherboard | string | Body | - |
+| motherboardManufacturer | string | Body | - |
+| processor | string | Body | - |
+| processorClockSpeed | integer | Body | - |
+| programs | [programs[]](#program) | Body | - |
+| physicalMemories | [physicalMemories[]](#physicalmemory) | Body | - |
+| disks | [disks[]](#disk) | Body | - |
 
 **Response**
 | Código | Descrição |
@@ -265,5 +268,33 @@ Alias para [/machines/{ident}](#machinesident), onde **ident** corresponde ao us
 ## networkAdapter
 | Parâmetro | Tipo | Descrição |
 | --- | --- | --- |
+| id | string |
 | name | string |
 | mac | string |
+
+## disk
+| Parâmetro | Tipo | Descrição |
+| --- | --- | --- |
+| id | string |
+| name | string |
+| serialNumber | string |
+| size | integer |
+| model | string |
+
+## physicalMemory
+| Parâmetro | Tipo | Descrição |
+| --- | --- | --- |
+| id | string |
+| name | string |
+| capacity | integer |
+| speed | integer |
+
+## program
+| Parâmetro | Tipo | Descrição |
+| --- | --- | --- |
+| id | string |
+| name | string |
+| published | string |
+| version | string |
+| estimatedSize | integer |
+| currentUserOnly | boolean |

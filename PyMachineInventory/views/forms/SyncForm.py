@@ -3,7 +3,7 @@ from PySide6.QtCore import Signal, Qt
 from enum import Enum, auto
 
 from src.ui.autofiles.Ui_SyncForm import Ui_SyncForm
-from models.dto import UserDTO
+from models.structs import User
 from models.AppModel import AppModel
 from .AbstractForm import AbstractForm
 
@@ -13,7 +13,7 @@ class SyncForm(AbstractForm):
     WIDGETS_TO_CLEAR = [ 'leCpf', 'leName', 'lbMessage' ]
     
     # Events
-    syncRequired = Signal(UserDTO) # Owner User
+    syncRequired = Signal(User, str) # Owner User, machineTitle
 
     # SyncForm Params
     class State(Enum):
@@ -43,7 +43,7 @@ class SyncForm(AbstractForm):
 
     #--------------------------------------------------------------------------
     # Métodos Públicos
-    def setUser(self, data:UserDTO|None):
+    def setUser(self, data:User|None):
         self._user = data
 
         self._ui.leCpf.setText(data.cpf if data else '')
@@ -74,19 +74,25 @@ class SyncForm(AbstractForm):
 
                 self._ui.checkBox.show()
                 self._ui.btnBack.hide()
+                self._ui.lbMachineTitle.hide()
+                self._ui.leMachineTitle.hide()
                 self._ui.checkBox.setChecked(False)
 
             case self.State.READY_TO_SYNC:
+                self._ui.leMachineTitle.setText(self._model.machinePreviousTitle())
                 self._ui.lbTitle.setText('Dados para Sincronização')
                 self._previousState = self.State.MACHINE_OWNER
 
                 self._ui.checkBox.hide()
+                self._ui.lbMachineTitle.show()
+                self._ui.leMachineTitle.show()
                 self._ui.btnBack.setVisible(self._userRuleAddMachine)
             
     #------------------------------------------------------------------------
     # Eventos
     def on_checkBox_checkStateChanged(self, state:Qt.CheckState):
         checked = state == Qt.CheckState.Checked
+        self.showMessage('')
 
         match self._state:
             case self.State.MACHINE_OWNER:
@@ -122,7 +128,8 @@ class SyncForm(AbstractForm):
 
             # enviar dados da máquina
             case self._state.READY_TO_SYNC:
-                self.syncRequired.emit(self._user)
+                self.blockChanges()
+                self.syncRequired.emit(self._user, self._ui.leMachineTitle.text())
 
     def on_btnBack_clicked(self):
         self.setState(self._previousState)

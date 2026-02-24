@@ -1,16 +1,15 @@
 from PySide6.QtCore import QObject, Signal, Qt
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabel
 from PySide6.QtGui import QFont, QAction, QKeySequence
-from enum import Enum, auto
 
 from views.forms.SyncForm import SyncForm
 from views.forms.MachineForm import MachineForm
 from views.forms.AuthForm import AuthForm
 
 class AppView(QObject):
-    _instance = None # instanciado por MachineInventoryApp
+    _instance = None
 
-    uiChanged = Signal(Enum)
+    uiChanged = Signal(int)
     logoutRequired = Signal()
 
     UI_LOADING = 1 << 1
@@ -30,20 +29,21 @@ class AppView(QObject):
         self._win = QMainWindow()
         self._win.setFont(QFont('Segoe UI', 11))
         self._win.setMinimumSize(900, 600)
+        self._win.setWindowTitle('Machine Inventory')
 
         menubar = self._win.menuBar()
         menuFile = menubar.addMenu('&Arquivo')
         
         actionLogout = QAction('Sair', self._win)
-        actionLogout.setShortcut('Ctrl+L')
+        actionLogout.setShortcut('Ctrl+Q')
         actionLogout.setStatusTip('Retorna para a tela de autenticação')
         actionLogout.triggered.connect(self.logoutRequired)
 
-        # actionQuit = QAction('Fechar Janela', self._win)
-        # actionQuit.setShortcut(QKeySequence.Quit)
-        # actionQuit.triggered.connect(self._win.close)
+        actionQuit = QAction('Fechar Janela', self._win)
+        actionQuit.setShortcut(QKeySequence.Quit)
+        actionQuit.triggered.connect(self._win.close)
         
-        # menuFile.addAction(actionQuit)
+        menuFile.addAction(actionQuit)
         menuFile.addSeparator()
         menuFile.addAction(actionLogout)
 
@@ -55,7 +55,9 @@ class AppView(QObject):
         self._win.show()
     
     @classmethod
-    def instance(cls) -> 'AppView':
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
         return cls._instance
     
     def syncForm(self): return self._syncForm if self._currentUi & self.UI_SYNC else None
@@ -67,7 +69,7 @@ class AppView(QObject):
         if ui not in self._UIS:
             raise RuntimeError(f'invalid UI {ui}')
 
-        if self._currentUi == ui and ui:
+        if self._currentUi == ui:
             return
         
         if ui & self.UI_SYNC:
@@ -85,7 +87,7 @@ class AppView(QObject):
                 self._layout.addWidget(self._tabWid)
 
                 self._syncForm.setParent(self._tabWid)
-                self._tabWid.addTab(self._syncForm, 'Sincronizar')
+                self._tabWid.addTab(self._syncForm, 'Sincronização')
 
                 self._machineForm.setParent(self._tabWid)
                 self._tabWid.addTab(self._machineForm, 'Máquina')

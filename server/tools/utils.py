@@ -80,4 +80,4 @@ def get_default_mac(values:list[dict[str, str]]):
     
     # caso não haja nenhuma correspondência, retorna o primeiro
     with_mac = list(filter(lambda v: v['mac'], values))
-    return with_mac[0]['mac'] if with_mac else None
+    return with_mac[0]['mac'] if with_mac else ''

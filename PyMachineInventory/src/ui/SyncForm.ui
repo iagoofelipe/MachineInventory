@@ -113,6 +113,16 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="lbMachineTitle">
+           <property name="text">
+            <string>Título da Máquina</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="leMachineTitle"/>
+         </item>
         </layout>
        </widget>
       </item>
