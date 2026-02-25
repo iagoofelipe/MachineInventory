@@ -38,8 +38,8 @@ void AuthOwnerForm::setState(AuthOwnerFormState state)
 
 		txtCpf->Enable();
 		lbMessage->SetLabel("");
-		lbTitle->SetLabel("Autenticação do Usuário");
-		btnSecondary->SetLabel("novo usuário");
+		lbTitle->SetLabel(_T("Autenticação do Usuário"));
+		btnSecondary->SetLabel(_T("novo usuário"));
 		secondaryState = NEW_USER;
 		break;
 
@@ -58,7 +58,7 @@ void AuthOwnerForm::setState(AuthOwnerFormState state)
         btnContinue->Show();
 
         lbMessage->SetLabel("");
-        lbTitle->SetLabel("Cadastro de Usuário");
+        lbTitle->SetLabel(_T("Cadastro de Usuário"));
         btnSecondary->SetLabel("tela de login");
         secondaryState = AUTH;
         break;
@@ -78,7 +78,7 @@ void AuthOwnerForm::setState(AuthOwnerFormState state)
         btnContinue->Show();
 
         lbMessage->SetLabel("");
-        lbTitle->SetLabel("Dados do Proprietário");
+        lbTitle->SetLabel(_T("Dados do Proprietário"));
         btnSecondary->SetLabel("tela de login");
         txtCpf->Disable();
         txtName->Disable();
@@ -101,7 +101,7 @@ void AuthOwnerForm::setState(AuthOwnerFormState state)
         btnContinue->Show();
 
         lbMessage->SetLabel("");
-        lbTitle->SetLabel("Dados para Sincronização");
+        lbTitle->SetLabel(_T("Dados para Sincronização"));
         txtCpf->Disable();
         txtName->Disable();
         btnSecondary->SetLabel("voltar");

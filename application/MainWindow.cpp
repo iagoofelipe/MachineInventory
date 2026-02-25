@@ -50,11 +50,11 @@ void MainWindow::setupUI()
 	//wxTreeItemId root = tree->AddRoot("Resumo do Sistema");
 
 	//wxTreeItemId comp = tree->AppendItem(root, "Componentes");
-	//tree->AppendItem(comp, "Multim�dia");
+	//tree->AppendItem(comp, "Multimídia");
 	//tree->AppendItem(comp, "Rede");
 	//
 	//wxTreeItemId env = tree->AppendItem(root, "Ambiente de Software");
-	//tree->AppendItem(env, "Vari�veis de Ambiente");
+	//tree->AppendItem(env, "Variáveis de Ambiente");
 
 	//tree->Expand(root);
 
@@ -94,25 +94,25 @@ void MainWindow::setupResumeInfo()
 	i = list->InsertItem(0, L"Clock do Processador");
 	list->SetItem(i, 1, std::to_string(machine->processorClockSpeed));
 
-	i = list->InsertItem(0, L"Organiza��o");
+	i = list->InsertItem(0, L"Organização");
 	list->SetItem(i, 1, machine->osOrganization);
 
-	i = list->InsertItem(0, L"Fabricante da Placa M�e");
+	i = list->InsertItem(0, L"Fabricante da Placa Mãe");
 	list->SetItem(i, 1, machine->motherboardManufacturer);
 
-	i = list->InsertItem(0, L"Placa M�e");
+	i = list->InsertItem(0, L"Placa Mãe");
 	list->SetItem(i, 1, machine->motherboardName);
 
-	i = list->InsertItem(0, L"N�mero de S�rie");
+	i = list->InsertItem(0, L"Número de Série");
 	list->SetItem(i, 1, machine->osSerialNumber);
 
-	i = list->InsertItem(0, L"Data de Instala��o");
+	i = list->InsertItem(0, L"Data de Instalação");
 	list->SetItem(i, 1, machine->osInstallDate);
 
 	i = list->InsertItem(0, L"Arquitetura");
 	list->SetItem(i, 1, machine->osArchitecture);
 
-	i = list->InsertItem(0, L"Vers�o do Sistema");
+	i = list->InsertItem(0, L"Versão do Sistema");
 	list->SetItem(i, 1, machine->osVersion);
 
 	i = list->InsertItem(0, L"Sistema Operacional");

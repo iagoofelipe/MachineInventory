@@ -37,9 +37,7 @@ class AppModel(QObject):
             self.initializationMessageChanged.emit('coletando dados da máquina...')
             self._machine = get_machine_data()
             
-            print('coletando default mac')
             mac = get_default_mac(self._machine.networkAdapters)
-            print('default mac', mac)
             if mac:
                 machine = self._server.getMachineByIdOrMac(mac)
                 self._previousTitle = machine['title'] if machine else ''

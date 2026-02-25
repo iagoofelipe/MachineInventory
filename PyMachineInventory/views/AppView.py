@@ -35,7 +35,6 @@ class AppView(QObject):
         menuFile = menubar.addMenu('&Arquivo')
         
         actionLogout = QAction('Sair', self._win)
-        actionLogout.setShortcut('Ctrl+Q')
         actionLogout.setStatusTip('Retorna para a tela de autenticação')
         actionLogout.triggered.connect(self.logoutRequired)
 
@@ -60,7 +59,6 @@ class AppView(QObject):
             cls._instance = cls()
         return cls._instance
     
-    def syncForm(self): return self._syncForm if self._currentUi & self.UI_SYNC else None
     def syncForm(self): return self._syncForm if self._currentUi & self.UI_SYNC else None
     def machineForm(self): return self._machineForm if self._currentUi & self.UI_MACHINE else None
     def authForm(self): return self._authForm if self._currentUi & self.UI_AUTH else None
