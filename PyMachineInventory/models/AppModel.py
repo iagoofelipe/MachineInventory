@@ -37,10 +37,10 @@ class AppModel(QObject):
             self.initializationMessageChanged.emit('coletando dados da máquina...')
             self._machine = get_machine_data()
             
-            mac = get_default_mac(self._machine.networkAdapters)
-            if mac:
-                machine = self._server.getMachineByIdOrMac(mac)
-                self._previousTitle = machine['title'] if machine else ''
+            # mac = get_default_mac(self._machine.networkAdapters)
+            # if mac:
+            #     machine = self._server.getMachineByIdOrMac(mac)
+            #     self._previousTitle = machine['title'] if machine else ''
             
             self.initializationMessageChanged.emit('inicialização finalizada')
         

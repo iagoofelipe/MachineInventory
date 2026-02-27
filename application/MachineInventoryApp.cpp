@@ -11,17 +11,17 @@ bool MachineInventoryApp::OnInit()
 	pMachine = new sysinfo::machine();
 
 	if (
-		!sysinfo::init() ||
-		!sysinfo::get_machine(pMachine)
+		!sysinfo::Init() ||
+		!sysinfo::GetMachine(pMachine)
 		) {
-		wxMessageBox(L"Failed: " + sysinfo::get_last_error(), "Init Error", wxOK | wxICON_ERROR);
+		wxMessageBox(L"Failed: " + sysinfo::GetLastError(), "Init Error", wxOK | wxICON_ERROR);
 		return false;
 	}
 
-	pServer = new sysinfo::ServerConnection();
+	pServer = new sysinfo::ServerAPI();
 
-	if (!pServer->is_ready()) {
-		wxMessageBox((wxString)"Failed: " + pServer->get_last_error(), "Server Error", wxOK | wxICON_ERROR);
+	if (!pServer->Initialize()) {
+		wxMessageBox((wxString)"Failed: " + pServer->GetLastError(), "Server Error", wxOK | wxICON_ERROR);
 		return false;
 	}
 
@@ -33,7 +33,7 @@ int MachineInventoryApp::OnExit()
 {
 	delete pServer;
 	delete pMachine;
-	sysinfo::cleanup();
+	sysinfo::Cleanup();
 	//wxMessageBox("Clean up finished successfully", "App Exit", wxOK | wxICON_INFORMATION);
 	return wxApp::OnExit();
 }

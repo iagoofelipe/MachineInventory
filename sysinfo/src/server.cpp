@@ -1,75 +1,85 @@
-#include "pch.h"
-#include "framework.h"
-
 #include "server.h"
-#include "cJSON.h"
 #include "utils.h"
+
 #include <iostream>
 #include <fstream>
+#include <windows.h>
 
-const std::string sysinfo::ServerConnection::BASE_URL = "http://127.0.0.1:5000";
+const std::string sysinfo::ServerAPI::BASE_URL = "http://127.0.0.1:5000";
+const char FILE_TOKEN[] = "token.txt";
 
 static size_t write_callback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append((char*)contents, size * nmemb);
     return size * nmemb;
 }
 
-sysinfo::ServerConnection::ServerConnection()
+sysinfo::ServerAPI::ServerAPI()
+    :curl(NULL)
 {
-    curl = curl_easy_init();
-    if(!curl) {
-        last_error = "Failed to initialize CURL";
-        return;
-	}
-
-    std::ifstream token_file("token.txt");
-    if (!token_file.is_open()) {
-        last_error = "Token not found in memory 'token.txt'";
-        return;
-    }
-
-    std::getline(token_file, token);
-    token_file.close();
 }
 
-sysinfo::ServerConnection::~ServerConnection()
+sysinfo::ServerAPI::~ServerAPI()
 {
     curl_easy_cleanup(curl);
 }
 
-const char* sysinfo::ServerConnection::get_last_error() { return last_error.c_str(); }
-const char* sysinfo::ServerConnection::get_token() { return token.c_str(); }
-bool sysinfo::ServerConnection::is_ready() { return curl; }
-bool sysinfo::ServerConnection::has_token() { return !token.empty(); }
+bool sysinfo::ServerAPI::Initialize()
+{
+    curl = curl_easy_init();
+    if (!curl) {
+        last_error = "Failed to initialize CURL";
+        return false;
+    }
 
-bool sysinfo::ServerConnection::validate_token()
+    std::ifstream token_file(FILE_TOKEN);
+    if (!token_file.is_open()) {
+        last_error = "Token file not found";
+        return true;
+    }
+
+    std::getline(token_file, token);
+    token_file.close();
+
+    return true;
+}
+
+const char* sysinfo::ServerAPI::GetLastError() { return last_error.c_str(); }
+bool sysinfo::ServerAPI::HasToken() { return !token.empty(); }
+
+bool sysinfo::ServerAPI::ValidateToken()
 {
     if (token.empty()) {
-        last_error = "Token not found in memory 'token.txt'";
+        last_error = "Token file not found";
 		return false;
 	}
 
     response r;
-    if (!get_request(BASE_URL + "/auth/validateToken", &r))
+    if (!getRequest(BASE_URL + "/auth/validateToken", &r))
         return false;
 
     if (r.status_code != 200) {
-		get_sfield_from_jstring(r.content, "message", &last_error);
+		getSfieldFromJstring(r.content, "message", &last_error);
         return false;
     }
 
     return true;
 }
 
-bool sysinfo::ServerConnection::login(const std::string& cpf, const std::string& password)
+void sysinfo::ServerAPI::ClearToken()
+{
+    std::remove(FILE_TOKEN);
+    token.clear();
+}
+
+bool sysinfo::ServerAPI::Auth(const std::string& cpf, const std::string& password)
 {
     response r;
-	if (!post_request(BASE_URL + "/auth", "{\"cpf\":\"" + cpf + "\",\"password\":\"" + password + "\"}", &r)) {
+	if (!postRequest(BASE_URL + "/auth", "{\"cpf\":\"" + cpf + "\",\"password\":\"" + password + "\"}", &r)) {
         return false;
 	}
 
     if (r.status_code != 200) {
-		get_sfield_from_jstring(r.content, "message", &last_error);
+		getSfieldFromJstring(r.content, "message", &last_error);
         return false;
 	}
 
@@ -106,23 +116,23 @@ bool sysinfo::ServerConnection::login(const std::string& cpf, const std::string&
     return true;
 }
 
-bool sysinfo::ServerConnection::get_user(user* u)
+bool sysinfo::ServerAPI::GetUser(user* u)
 {
-	return get_user("", u);
+	return GetUser("", u);
 }
 
-bool sysinfo::ServerConnection::get_user(const std::string& cpf_or_id, user* u)
+bool sysinfo::ServerAPI::GetUser(const std::string& cpf_or_id, user* u)
 {
 	response r;
     std::string url = BASE_URL + "/user" + (cpf_or_id.empty() ? "" : "/" + cpf_or_id);
 
-    if (!get_request(url, &r)) {
-        last_error = "Failed to get user data, ResponseCode: " + std::to_string(r.status_code);
+    if (!getRequest(url, &r)) {
+        // last_error = "Failed to get user data, ResponseCode: " + std::to_string(r.status_code);
         return false;
     }
 
     if (r.status_code != 200) {
-        get_sfield_from_jstring(r.content, "message", &last_error);
+        getSfieldFromJstring(r.content, "message", &last_error);
         return false;
     }
 
@@ -150,7 +160,7 @@ bool sysinfo::ServerConnection::get_user(const std::string& cpf_or_id, user* u)
     return true;
 }
 
-bool sysinfo::ServerConnection::create_new_user(const std::string &cpf, const std::string &name, const std::string& password, std::string *id)
+bool sysinfo::ServerAPI::CreateNewUser(const std::string &cpf, const std::string &name, const std::string& password, std::string *id)
 {
     cJSON *json = cJSON_CreateObject();
 
@@ -170,7 +180,7 @@ bool sysinfo::ServerConnection::create_new_user(const std::string &cpf, const st
     }
 
     response r;
-    bool request_success = post_request(BASE_URL + "/user", cJSON_PrintUnformatted(json), &r);
+    bool request_success = postRequest(BASE_URL + "/user", cJSON_PrintUnformatted(json), &r);
     cJSON_Delete(json);
     json = NULL;
 
@@ -179,29 +189,29 @@ bool sysinfo::ServerConnection::create_new_user(const std::string &cpf, const st
     }
 
     if (r.status_code != 200) {
-		get_sfield_from_jstring(r.content, "message", &last_error);
+		getSfieldFromJstring(r.content, "message", &last_error);
         return false;
     }
 
     // coletando id criado
-    return get_sfield_from_jstring(r.content, "id", id);
+    return getSfieldFromJstring(r.content, "id", id);
 }
 
-bool sysinfo::ServerConnection::upload_machine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id)
+bool sysinfo::ServerAPI::UploadMachine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id)
 {
-    cJSON *json = machine_to_cjson(data);
+    cJSON *json = MachineToJson(data);
     if (!json) {
         last_error = "it was not possible to create the JSON object";
         return false;
     }
 
-    bool success = upload_machine(json, ownerCpf, machineTitle, id);
+    bool success = UploadMachine(json, ownerCpf, machineTitle, id);
 	cJSON_Delete(json);
 
 	return success;
 }
 
-bool sysinfo::ServerConnection::upload_machine(cJSON* json, const char* ownerCpf, const char* machineTitle, std::string* id)
+bool sysinfo::ServerAPI::UploadMachine(cJSON* json, const char* ownerCpf, const char* machineTitle, std::string* id)
 {
     if (
         !cJSON_AddStringToObject(json, "ownerCpf", ownerCpf) ||
@@ -213,19 +223,19 @@ bool sysinfo::ServerConnection::upload_machine(cJSON* json, const char* ownerCpf
 
     // enviando dados para o servidor
     response r;
-    if (!post_request(BASE_URL + "/machine", cJSON_PrintUnformatted(json), &r))
+    if (!postRequest(BASE_URL + "/machine", cJSON_PrintUnformatted(json), &r))
         return false;
 
     if (r.status_code != 200) {
-		get_sfield_from_jstring(r.content, "message", &last_error);
+		getSfieldFromJstring(r.content, "message", &last_error);
         return false;
     }
 
     // coletando id criado
-    return get_sfield_from_jstring(r.content, "id", id);
+    return getSfieldFromJstring(r.content, "id", id);
 }
 
-bool sysinfo::ServerConnection::get_request(const std::string& url, response* r)
+bool sysinfo::ServerAPI::getRequest(const std::string& url, response* r)
 {
     r->status_code = 0;
     curl_slist* headers = NULL;
@@ -249,7 +259,7 @@ bool sysinfo::ServerConnection::get_request(const std::string& url, response* r)
 	return res == CURLE_OK;
 }
 
-bool sysinfo::ServerConnection::post_request(const std::string& url, const std::string& data, response* r)
+bool sysinfo::ServerAPI::postRequest(const std::string& url, const std::string& data, response* r)
 {
     r->status_code = 0;
     curl_slist* headers = NULL;
@@ -276,7 +286,7 @@ bool sysinfo::ServerConnection::post_request(const std::string& url, const std::
     return res == CURLE_OK;
 }
 
-bool sysinfo::ServerConnection::get_sfield_from_jstring(const std::string& content, const std::string& field, std::string* out)
+bool sysinfo::ServerAPI::getSfieldFromJstring(const std::string& content, const std::string& field, std::string* out)
 {
     cJSON
         *json = NULL,

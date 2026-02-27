@@ -1,7 +1,5 @@
-#include "pch.h"
-#include "framework.h"
-
 #include "utils.h"
+
 #include <windows.h>
 
 std::wstring ToWString(const std::string& str) {

@@ -57,22 +57,16 @@ bool init_console(const std::wstring_view& command)
     if (!machine_data_required)
         return true;
 
-    if (!sysinfo::init()) {
-        std::wcerr << sysinfo::get_last_error() << std::endl;
+    if (!sysinfo::Init()) {
+        std::wcerr << sysinfo::GetLastError() << std::endl;
         return false;
     }
 
     std::wcout << "getting the machine data..." << std::endl;
 
-    if (!sysinfo::get_machine(&machine)) {
-        std::wcerr << sysinfo::get_last_error() << std::endl;
-        sysinfo::cleanup();
-        return false;
-    }
-
-    if (!(json_machine = sysinfo::machine_to_cjson(&machine))) {
-        std::wcerr << sysinfo::get_last_error() << std::endl;
-        sysinfo::cleanup();
+    if (!sysinfo::GetMachine(&machine) || !(json_machine = sysinfo::MachineToJson(&machine))) {
+        std::wcerr << sysinfo::GetLastError() << std::endl;
+        sysinfo::Cleanup();
         return false;
     }
 
@@ -85,7 +79,7 @@ void cleanup()
         return;
 
     if (json_machine) cJSON_Delete(json_machine);
-    sysinfo::cleanup();
+    sysinfo::Cleanup();
 }
 
 int command_sysinfo()
@@ -137,20 +131,20 @@ int command_sysinfo()
 
 int command_upload(const wchar_t* cpf, const wchar_t* machineTitle)
 {
-    sysinfo::ServerConnection server;
+    sysinfo::ServerAPI server;
     std::string userId, newMachineId;
 
     if (
-        !server.is_ready() ||
-		!server.validate_token() ||
-        !server.upload_machine(
+        !server.Initialize() ||
+		!server.ValidateToken() ||
+        !server.UploadMachine(
             json_machine,
             input("User's CPF: ", cpf).c_str(),
             input("Machine's Title: ", machineTitle).c_str(),
             &newMachineId
         )
     ) {
-        std::wcerr << server.get_last_error() << std::endl;
+        std::wcerr << server.GetLastError() << std::endl;
         return 1;
     }
 
@@ -160,13 +154,13 @@ int command_upload(const wchar_t* cpf, const wchar_t* machineTitle)
 
 int command_auth(const wchar_t* cpf, const wchar_t* password)
 {
-    sysinfo::ServerConnection server;
+    sysinfo::ServerAPI server;
 
     if (
-        !server.is_ready() ||
-        !server.login(input("User's CPF: ", cpf), input("User's password: ", password))
+        !server.Initialize() ||
+        !server.Auth(input("User's CPF: ", cpf), input("User's password: ", password))
     ) {
-        std::wcerr << server.get_last_error() << std::endl;
+        std::wcerr << server.GetLastError() << std::endl;
         return 1;
 	}
 
@@ -176,14 +170,14 @@ int command_auth(const wchar_t* cpf, const wchar_t* password)
 
 int command_newuser(const wchar_t* cpf, const wchar_t* name, const wchar_t* password)
 {
-    sysinfo::ServerConnection server;
+    sysinfo::ServerAPI server;
     std::string userId;
 
     if (
-        !server.is_ready() ||
-        !server.create_new_user(input("User's CPF: ", cpf), input("User's name: ", name), input("User's password: ", password), &userId)
+        !server.Initialize() ||
+        !server.CreateNewUser(input("User's CPF: ", cpf), input("User's name: ", name), input("User's password: ", password), &userId)
     ) {
-        std::wcerr << server.get_last_error() << std::endl;
+        std::wcerr << server.GetLastError() << std::endl;
         return 1;
     }
 
@@ -193,10 +187,10 @@ int command_newuser(const wchar_t* cpf, const wchar_t* name, const wchar_t* pass
 
 int command_validatetoken()
 {
-	sysinfo::ServerConnection server;
-    if (!server.is_ready() || !server.validate_token())
+	sysinfo::ServerAPI server;
+    if (!server.Initialize() || !server.ValidateToken())
     {
-		std::wcerr << server.get_last_error() << std::endl;
+		std::wcerr << server.GetLastError() << std::endl;
         return 1;
     }
 

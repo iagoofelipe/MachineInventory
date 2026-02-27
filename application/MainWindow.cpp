@@ -3,7 +3,7 @@
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
 
-MainWindow::MainWindow(sysinfo::ServerConnection* server, sysinfo::machine* machine)
+MainWindow::MainWindow(sysinfo::ServerAPI* server, sysinfo::machine* machine)
 	: wxFrame(nullptr, wxID_ANY, "Machine Inventory")
 	, list(nullptr)
 	, server(server)
@@ -14,8 +14,8 @@ MainWindow::MainWindow(sysinfo::ServerConnection* server, sysinfo::machine* mach
 	sysinfo::user owner;
 
 	if (
-		!server->has_token() ||
-		!server->get_user(&owner)
+		!server->HasToken() ||
+		!server->GetUser(&owner)
 	) {
 		authOwnerForm->setState(AUTH);
 		return;

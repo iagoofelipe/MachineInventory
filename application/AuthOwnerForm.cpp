@@ -1,6 +1,6 @@
 ﻿#include "AuthOwnerForm.h"
 
-AuthOwnerForm::AuthOwnerForm(wxWindow* parent, sysinfo::ServerConnection* server, AuthOwnerFormState initial_state)
+AuthOwnerForm::AuthOwnerForm(wxWindow* parent, sysinfo::ServerAPI* server, AuthOwnerFormState initial_state)
 	: wxPanel(parent, wxID_ANY)
 	, server(server)
 	, currentState(NONE)
@@ -193,10 +193,10 @@ void AuthOwnerForm::on_btnContinue(wxCommandEvent& event)
         }
 
         if (
-            !server->login(cpf.ToStdString(), password.ToStdString()) ||
-            !server->get_user(&owner)
+            !server->Auth(cpf.ToStdString(), password.ToStdString()) ||
+            !server->GetUser(&owner)
             ) {
-            lbMessage->SetLabel(wxString::FromUTF8(server->get_last_error()));
+            lbMessage->SetLabel(wxString::FromUTF8(server->GetLastError()));
             // blockButtons(false);
             return;
         }
@@ -211,8 +211,8 @@ void AuthOwnerForm::on_btnContinue(wxCommandEvent& event)
     // verificar se é para outro usuário e requisitar os dados do usuário desejado
     case MACHINE_OWNER:
         if (checkbox->GetValue()) {
-            if (!server->get_user(txtCpf->GetValue().ToStdString(), &owner)) {
-                lbMessage->SetLabel(wxString::FromUTF8(server->get_last_error()));
+            if (!server->GetUser(txtCpf->GetValue().ToStdString(), &owner)) {
+                lbMessage->SetLabel(wxString::FromUTF8(server->GetLastError()));
                 // blockButtons(false);
                 return;
             }

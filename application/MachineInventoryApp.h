@@ -10,7 +10,7 @@ class MachineInventoryApp :
 	virtual int OnExit() override;
 
 private:
-	sysinfo::ServerConnection* pServer = nullptr;
+	sysinfo::ServerAPI* pServer = nullptr;
 	sysinfo::machine* pMachine = nullptr;
 };
 

@@ -1,9 +1,9 @@
-#include "pch.h"
-#include "framework.h"
-
 #include "sysinfo.h"
 #include "utils.h"
+
 #include <sstream>
+#include <windows.h>
+#include <wbemidl.h>
 
 static IWbemServices* pSvc = NULL;
 static IWbemLocator* pLoc = NULL;
@@ -148,7 +148,7 @@ static void clear_variants(std::vector<std::vector<VARIANT>>& variants, bool cle
         variants.clear();
 }
 
-bool sysinfo::init()
+bool sysinfo::Init()
 {
     HRESULT hr;
     std::wstringstream ss;
@@ -236,14 +236,14 @@ bool sysinfo::init()
         ss << "Could not set proxy blanket. Error code = 0x" << std::hex << hr;
         _error = ss.str();
 
-        cleanup();
+        Cleanup();
         return false;
     }
 
     return coInitialized = true;
 }
 
-void sysinfo::cleanup()
+void sysinfo::Cleanup()
 {
     if (pSvc) {
         pSvc->Release();
@@ -261,9 +261,9 @@ void sysinfo::cleanup()
     }
 }
 
-std::wstring sysinfo::get_last_error() { return _error; }
+std::wstring sysinfo::GetLastError() { return _error; }
 
-bool sysinfo::get_operating_system_name(std::wstring* out)
+bool sysinfo::GetOperatingSystemName(std::wstring* out)
 {
     HRESULT hr;
     IEnumWbemClassObject* pEnumerator = NULL;
@@ -317,7 +317,7 @@ bool sysinfo::get_operating_system_name(std::wstring* out)
     return true;
 }
 
-bool sysinfo::get_disks(std::vector<disk>* out)
+bool sysinfo::GetDisks(std::vector<disk>* out)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_DiskDrive", FIELDS_DISK_DRIVE, variants))
@@ -337,7 +337,7 @@ bool sysinfo::get_disks(std::vector<disk>* out)
     return true;
 }
 
-bool sysinfo::get_network_adapters(std::vector<network_adapter>* out, int flags)
+bool sysinfo::GetNetworkAdapters(std::vector<network_adapter>* out, int flags)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_NetworkAdapter", FIELDS_NETWORK_ADPATER, variants))
@@ -356,7 +356,7 @@ bool sysinfo::get_network_adapters(std::vector<network_adapter>* out, int flags)
     return true;
 }
 
-bool sysinfo::get_physical_memories(std::vector<physical_memory>* out)
+bool sysinfo::GetPhysicalMemories(std::vector<physical_memory>* out)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_PhysicalMemory", FIELDS_PHYSICAL_MEMORY, variants))
@@ -377,7 +377,7 @@ bool sysinfo::get_physical_memories(std::vector<physical_memory>* out)
     return true;
 }
 
-bool sysinfo::get_programs(std::vector<program>* programs, int flags)
+bool sysinfo::GetPrograms(std::vector<program>* programs, int flags)
 {
     HKEY hKey = NULL;
     const size_t numRoots = 2;
@@ -431,7 +431,7 @@ bool sysinfo::get_programs(std::vector<program>* programs, int flags)
     return true;
 }
 
-bool sysinfo::get_motherboard(std::wstring* name, std::wstring* manufacturer)
+bool sysinfo::GetMotherboard(std::wstring* name, std::wstring* manufacturer)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_BaseBoard", FIELDS_BASE_BOARD, variants) || !variants.size())
@@ -446,7 +446,7 @@ bool sysinfo::get_motherboard(std::wstring* name, std::wstring* manufacturer)
     return true;
 }
 
-bool sysinfo::get_processor(std::wstring* name, long* clock_speed)
+bool sysinfo::GetProcessor(std::wstring* name, long* clock_speed)
 {
     std::vector<std::vector<VARIANT>> variants;
     if (!query_wmi(L"Win32_Processor", FIELDS_PROCESSOR, variants) || !variants.size())
@@ -463,7 +463,7 @@ bool sysinfo::get_processor(std::wstring* name, long* clock_speed)
     return true;
 }
 
-bool sysinfo::get_machine(machine* out, int flags)
+bool sysinfo::GetMachine(machine* out, int flags)
 {
     // OS
     std::vector<std::vector<VARIANT>> variants;
@@ -495,15 +495,15 @@ bool sysinfo::get_machine(machine* out, int flags)
 
     // Informações Adicionais
     return
-        get_motherboard(&out->motherboardName, &out->motherboardManufacturer)
-        && get_processor(&out->processorName, &out->processorClockSpeed)
-        && get_disks(&out->disks)
-        && get_network_adapters(&out->network_adapters, flags)
-        && get_physical_memories(&out->physical_memories)
-        && get_programs(&out->programs, flags);
+        GetMotherboard(&out->motherboardName, &out->motherboardManufacturer)
+        && GetProcessor(&out->processorName, &out->processorClockSpeed)
+        && GetDisks(&out->disks)
+        && GetNetworkAdapters(&out->network_adapters, flags)
+        && GetPhysicalMemories(&out->physical_memories)
+        && GetPrograms(&out->programs, flags);
 }
 
-cJSON* sysinfo::machine_to_cjson(const machine* data)
+cJSON* sysinfo::MachineToJson(const machine* data)
 {
     cJSON
         *json = NULL,

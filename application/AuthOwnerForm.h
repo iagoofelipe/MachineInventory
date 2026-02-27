@@ -16,7 +16,7 @@ class AuthOwnerForm :
     public wxPanel
 {
 public:
-	AuthOwnerForm(wxWindow* parent, sysinfo::ServerConnection* server, AuthOwnerFormState initial_state = NONE);
+	AuthOwnerForm(wxWindow* parent, sysinfo::ServerAPI* server, AuthOwnerFormState initial_state = NONE);
 
 	void setState(AuthOwnerFormState state);
 	void setName(const wxString& text);
@@ -25,7 +25,7 @@ public:
 private:
 	AuthOwnerFormState currentState;
 	AuthOwnerFormState secondaryState;
-	sysinfo::ServerConnection* server;
+	sysinfo::ServerAPI* server;
 
 	wxStaticText* lbTitle;
 	wxCheckBox* checkbox;

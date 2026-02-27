@@ -11,11 +11,11 @@ class MainWindow :
     public wxFrame
 {
 public:
-    MainWindow(sysinfo::ServerConnection* server, sysinfo::machine* machine);
+    MainWindow(sysinfo::ServerAPI* server, sysinfo::machine* machine);
 
 private:
 	wxListCtrl* list;
-	sysinfo::ServerConnection* server;
+	sysinfo::ServerAPI* server;
 	sysinfo::machine* machine;
 	AuthOwnerForm* authOwnerForm;
 

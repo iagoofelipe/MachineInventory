@@ -60,8 +60,6 @@ class AuthForm(AbstractForm):
                 self._ui.btnMachineData.show()
                 self._ui.btnBack.hide()
 
-                QTimer.singleShot(0, self._ui.leCpf.setFocus)
-            
             case self.STATE_CREATE_ACCOUNT:
                 self._ui.leName.show()
                 self._ui.lbName.show()
@@ -71,7 +69,7 @@ class AuthForm(AbstractForm):
                 self._ui.btnMachineData.hide()
                 self._ui.btnBack.show()
 
-                QTimer.singleShot(0, self._ui.leCpf.setFocus)
+        QTimer.singleShot(0, self._ui.leCpf.setFocus)
 
     #--------------------------------------------------------------------------
     # Eventos

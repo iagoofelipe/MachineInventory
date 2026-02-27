@@ -1,6 +1,8 @@
-#pragma once
+#ifndef SYSINFO_H
+#define SYSINFO_H
 
 #include "cJSON.h"
+
 #include <string>
 #include <vector>
 
@@ -63,18 +65,20 @@ namespace sysinfo
         std::vector<program> programs;
     };
 
-    bool init();
-    void cleanup();
-    std::wstring get_last_error();
+    bool Init();
+    void Cleanup();
+    std::wstring GetLastError();
 
-    bool get_operating_system_name(std::wstring* out);
-    bool get_disks(std::vector<disk>* out);
-    bool get_network_adapters(std::vector<network_adapter>* out, int flags = DEFAULT);
-    bool get_physical_memories(std::vector<physical_memory>* out);
-    bool get_programs(std::vector<program>* programs, int flags = DEFAULT);
-    bool get_motherboard(std::wstring* name, std::wstring* manufacturer);
-    bool get_processor(std::wstring* name, long* clock_speed);
-    bool get_machine(machine* out, int flags = DEFAULT);
+    bool GetOperatingSystemName(std::wstring* out);
+    bool GetDisks(std::vector<disk>* out);
+    bool GetNetworkAdapters(std::vector<network_adapter>* out, int flags = DEFAULT);
+    bool GetPhysicalMemories(std::vector<physical_memory>* out);
+    bool GetPrograms(std::vector<program>* programs, int flags = DEFAULT);
+    bool GetMotherboard(std::wstring* name, std::wstring* manufacturer);
+    bool GetProcessor(std::wstring* name, long* clock_speed);
+    bool GetMachine(machine* out, int flags = DEFAULT);
 
-    cJSON* machine_to_cjson(const machine* data);
+    cJSON* MachineToJson(const machine* data);
 }
+
+#endif
