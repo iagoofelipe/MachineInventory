@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="views">
+      <UniqueIdentifier>{85be87ff-79ec-4c32-bf30-59b5301e0728}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="controllers">
+      <UniqueIdentifier>{305b77dd-fad9-479b-80ca-a2ddc8ac502a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="models">
+      <UniqueIdentifier>{19aa4edf-05c6-4a97-af90-21bf7b66b7b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="views\forms">
+      <UniqueIdentifier>{997fd146-d130-4b1a-8ba8-91b228e2ebd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="views\Headers">
+      <UniqueIdentifier>{40b9393f-7b4e-4f43-8d26-9e8c6ed5a87c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="views\forms\Headers">
+      <UniqueIdentifier>{3995e461-d448-47ec-9b85-5ac7b6237d04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="models\Headers">
+      <UniqueIdentifier>{d92f41c1-4f20-4670-abca-0c223a9efb99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="controllers\Headers">
+      <UniqueIdentifier>{da674cf4-2ecd-4051-a2fb-29535b6cca08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Recursos">
+      <UniqueIdentifier>{cad1ec36-f021-46c3-abb2-34bd770f5508}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="app.h">
+      <Filter>views\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="appview.h">
+      <Filter>views\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="authform.h">
+      <Filter>views\forms\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="form.h">
+      <Filter>views\forms\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="homeform.h">
+      <Filter>views\forms\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="loadingform.h">
+      <Filter>views\forms\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="machineform.h">
+      <Filter>views\forms\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="syncform.h">
+      <Filter>views\forms\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="appmodel.h">
+      <Filter>models\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="id.h">
+      <Filter>models\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="structs.h">
+      <Filter>models\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="appcontroller.h">
+      <Filter>controllers\Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="appcontroller.cpp">
+      <Filter>controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="app.cpp">
+      <Filter>views</Filter>
+    </ClCompile>
+    <ClCompile Include="appview.cpp">
+      <Filter>views</Filter>
+    </ClCompile>
+    <ClCompile Include="appmodel.cpp">
+      <Filter>models</Filter>
+    </ClCompile>
+    <ClCompile Include="authform.cpp">
+      <Filter>views\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="homeform.cpp">
+      <Filter>views\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="loadingform.cpp">
+      <Filter>views\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="machineform.cpp">
+      <Filter>views\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="syncform.cpp">
+      <Filter>views\forms</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources.rc">
+      <Filter>Recursos</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="MachineInventory.ico">
+      <Filter>Recursos</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

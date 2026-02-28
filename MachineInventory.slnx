@@ -1,10 +1,8 @@
 <Solution>
   <Configurations>
-    <Platform Name="Any CPU" />
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="application/application.vcxproj" Id="a5526848-dab7-4181-8f11-3f907a4ffa5f" />
-  <Project Path="console/console.vcxproj" Id="ce58a5c6-d7d3-4150-86a1-90d02ca9661f" />
-  <Project Path="sysinfo/sysinfo.vcxproj" Id="21186c04-59ab-46d2-8ba2-db8496523ff1" />
+  <Project Path="application/application.vcxproj" Id="1a0d20c7-8988-4baf-8c7d-08d75ed334c7" />
+  <Project Path="sysinfo/sysinfo.vcxproj" Id="6546199a-6d9e-4818-9f40-9de2231fe38e" />
 </Solution>
