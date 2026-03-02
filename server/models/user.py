@@ -78,7 +78,8 @@ class User(db.Model):
             'id': self.id,
             'name': self.name, 
             'cpf': self.cpf,
-            'rules': self.rules_splitted.split(self.SEP_RULES) if self.rules_splitted else []
+            'rules': self.rules_splitted.split(self.SEP_RULES) if self.rules_splitted else [],
+            'rulesFlag': self.rules_combinated
         }
 
         if machines:

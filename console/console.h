@@ -1,5 +1,4 @@
-#ifndef CONSOLE_H
-#define CONSOLE_H
+#pragma once
 
 #include <string_view>
 #include <iostream>
@@ -14,7 +13,6 @@ void cleanup();
 int command_sysinfo();
 int command_upload(const wchar_t* cpf, const wchar_t* machineTitle);
 int command_auth(const wchar_t* cpf, const wchar_t* password);
+int command_user(const wchar_t* cpf);
 int command_newuser(const wchar_t* cpf, const wchar_t* name, const wchar_t* password);
 int command_validatetoken();
-
-#endif

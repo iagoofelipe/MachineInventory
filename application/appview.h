@@ -19,19 +19,9 @@ namespace inventory
     public:
         AppView();
 
-        // enum UI
-        // {
-        //     NONE = 0,
-        //     UI_LOADING = 1 << 1,
-        //     UI_AUTH = 1 << 2,
-        //     UI_SYNC = 1 << 3,
-        //     UI_MACHINE = 1 << 4,
-        //     UI_HOME = UI_SYNC | UI_MACHINE,
-        // };
-
         void Initialize();
         void* SetUI(int id);
-        void ShowMessage(const wxString& msg, int timeout = 0); // timeout deve ser maior out igual a 1000
+        void ShowMessage(const wxString& msg, int timeout = 5000); // timeout deve ser maior out igual a 1000
 
         AuthForm* GetAuthForm() const { return authForm; }
         LoadingForm* GetLoadingForm() const { return loadingForm; }

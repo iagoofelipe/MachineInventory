@@ -7,14 +7,29 @@ namespace inventory
 {
     enum ID
     {
-        ID_AUTH_FORM = wxID_HIGHEST + 1,
+        // App View
+        ID_APP_VIEW_MENU_LOGOUT = wxID_HIGHEST + 1,
+        ID_APP_VIEW_TIMER_STATUSBAR,
+
+		// Auth Form
+        ID_AUTH_FORM,
+
+		// Loading Form
         ID_LOADING_FORM,
-        ID_SYNC_FORM,
-        ID_MACHINE_FORM,
+
+		// Home Form
         ID_HOME_FORM,
-        ID_MENU_LOGOUT,
-        ID_TIMER_STATUSBAR,
+
+        // Machine Form
+        ID_MACHINE_FORM,
+        ID_MACHINE_FORM_BTN_SYNC,
+
+		// Sync Form
+        ID_SYNC_FORM,
+        ID_SYNC_FORM_CHECKBOX,
+        ID_SYNC_FORM_BTN_BACK,
+		ID_SYNC_FORM_BTN_CONTINUE,
     };
-} // namespace inventory
+}
 
 #endif

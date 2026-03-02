@@ -1,21 +1,21 @@
 #include "authform.h"
+#include "id.h"
 
 wxDEFINE_EVENT(EVT_AUTHFORM_AUTH, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUTHFORM_CREATEACCOUNT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AUTHFORM_MACHINE, wxCommandEvent);
 
-inventory::AuthForm::AuthForm(wxWindow* parent, wxWindowID id, State state)
-    : wxPanel(parent, id)
-    , currentState(NONE)
+inventory::AuthForm::AuthForm(wxWindow* parent, State state)
+    : wxPanel(parent, ID_AUTH_FORM)
 {
     setupUI();
-    SetState(state);
+    SetState(state, true);
 }
 
-void inventory::AuthForm::SetState(State state)
+void inventory::AuthForm::SetState(State state, bool force)
 {
-    if (currentState == state)
-    return;
+    if (currentState == state && !force)
+        return;
     
     currentState = state;
     Clear();
@@ -46,7 +46,7 @@ void inventory::AuthForm::SetState(State state)
     Layout();
 }
 
-void inventory::AuthForm::ShowMessage(const wxString& msg)
+void inventory::AuthForm::ShowMessage(const wxString& msg, int timeout)
 {
     lbMessage->SetLabel(msg);
     Layout();

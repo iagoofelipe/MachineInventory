@@ -5,10 +5,13 @@
 #include <wx/wx.h>
 #include <wx/datetime.h>
 
-wxDECLARE_EVENT(EVT_APPMODEL_MESSAGE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_APPMODEL_INIT, wxCommandEvent);
-wxDECLARE_EVENT(EVT_APPMODEL_LOGIN, wxCommandEvent);
-wxDECLARE_EVENT(EVT_APPMODEL_MACHINE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_APPMODEL_MESSAGE, wxCommandEvent);       // Nova mensagem referente a um processo
+wxDECLARE_EVENT(EVT_APPMODEL_INIT, wxCommandEvent);          // Finalização do processo de inicialização
+wxDECLARE_EVENT(EVT_APPMODEL_LOGIN, wxCommandEvent);         // Finalização do processo de autenticação
+wxDECLARE_EVENT(EVT_APPMODEL_MACHINE, wxCommandEvent);       // Finalização do processo de extração de dados da máquina
+wxDECLARE_EVENT(EVT_APPMODEL_QUERY_OWNER, wxCommandEvent);   // Finalização do processo de consulta de proprietário
+wxDECLARE_EVENT(EVT_APPMODEL_CREATE_USER, wxCommandEvent);   // Finalização do processo de criação de usuário
+wxDECLARE_EVENT(EVT_APPMODEL_SERVER, wxCommandEvent);        // Finalização do processo de envio dos dados da máquina para o servidor
 
 namespace inventory
 {
@@ -24,6 +27,7 @@ namespace inventory
         AppModel();
 
     public:
+
         // Singleton
         AppModel(const AppModel&) = delete;
         void operator=(const AppModel&) = delete;
@@ -36,17 +40,26 @@ namespace inventory
         const sysinfo::user* GetLoggedUser() { return isLogged? &loggedUser : nullptr; }
         const sysinfo::machine* GetMachine() { return &extraction.data; }
         const machine_extraction* GetExtraction() { return &extraction; }
-        void SetExtractionTitle(const wxString& title) { extraction.title = title; }
         
+		// Machine Extraction Methods
+        void SetExtractionTitle(const wxString& title) { extraction.title = title; }
+        void UpdateExtraction();
+		void SendExtractionToServer();
+        
+        // User Methods
         void Auth(const wxString& cpf, const wxString& password);
         void Logout();
-        void UpdateExtraction();
-        
+        bool HasUserRule(sysinfo::USER_RULE rule) const { return isLogged && (loggedUser.rules & rule); }
+		void QueryOwner(const wxString& cpf);
+		void CreateUser(const wxString& cpf, const wxString& name, const wxString& password);
+
     private:
         wxString lastError;
         sysinfo::ServerAPI server;
         machine_extraction extraction;
-        sysinfo::user loggedUser;
+        sysinfo::user
+            loggedUser,
+            owner;
         bool isLogged;
 
         void queueMessage(const wxString& msg);

@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma comment(lib, "wbemuuid.lib")
+
 #include "cJSON.h"
 
 #include <string>

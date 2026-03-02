@@ -1,20 +1,21 @@
 #include "machineform.h"
 #include "appmodel.h"
+#include "id.h"
 
 #include <sysinfo/sysinfo.h>
 #include <wx/splitter.h>
 
-inventory::MachineForm::MachineForm(wxWindow* parent, wxWindowID id, int border)
-    : wxPanel(parent, id)
+inventory::MachineForm::MachineForm(wxWindow* parent, int border)
+    : wxPanel(parent, ID_MACHINE_FORM)
     , model(AppModel::GetInstance())
 {
     setupUI(border);
     
-    Bind(wxEVT_BUTTON, &MachineForm::OnBtnSync, this, ID_BTN_SYNC);
+    Bind(wxEVT_BUTTON, &MachineForm::OnBtnSync, this, ID_MACHINE_FORM_BTN_SYNC);
     model->Bind(EVT_APPMODEL_MACHINE, &MachineForm::OnAppModelMachine, this);
 }
 
-void inventory::MachineForm::ShowMessage(const wxString& msg)
+void inventory::MachineForm::ShowMessage(const wxString& msg, int timeout)
 {}
 
 void inventory::MachineForm::BlockChanges(bool block)
@@ -78,14 +79,14 @@ void inventory::MachineForm::setupUI(int border)
     list->InsertColumn(0, "Item", wxLIST_FORMAT_LEFT, 200);
     list->InsertColumn(1, "Valor", wxLIST_FORMAT_LEFT, 400);
 
-    sizer->Add(splitter, 1, wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, border);
+    sizer->Add(splitter, 1, wxEXPAND | wxTOP | wxRIGHT | wxLEFT, border);
     sizer->AddSpacer(6);
-    sizer->Add(footerSizer, 0, wxEXPAND | wxTOP | wxRIGHT | wxLEFT, border);
+    sizer->Add(footerSizer, 0, wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, border);
 
     const wxString& lastSyncText = extraction->datetime.Format("Sincronizado em %H:%M %d/%m");
     footerSizer->Add(lastSync = new wxStaticText(this, wxID_ANY, lastSyncText), 0, wxALIGN_CENTER_VERTICAL);
     footerSizer->AddStretchSpacer();
-    footerSizer->Add(btnSync = new wxButton(this, ID_BTN_SYNC, "sincronizar"));
+    footerSizer->Add(btnSync = new wxButton(this, ID_MACHINE_FORM_BTN_SYNC, "sincronizar"));
 
     splitter->SplitVertically(tree, list, 250);
 

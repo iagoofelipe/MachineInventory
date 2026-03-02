@@ -1,28 +1,109 @@
 #include "syncform.h"
+#include "id.h"
 
-inventory::SyncForm::SyncForm(wxWindow* parent, wxWindowID id, int border)
-    : wxPanel(parent, id)
+wxDEFINE_EVENT(EVT_SYNCFORM, wxCommandEvent);       // Sincronização requisitada
+
+inventory::SyncForm::SyncForm(wxWindow* parent, int border)
+    : wxPanel(parent, ID_SYNC_FORM)
+	, m_model(AppModel::GetInstance())
+    , m_isBlocked(false)
 {
+	STATE state = m_model->HasUserRule(sysinfo::ADD_MACHINE) ? GET_OWNER : READY;
+
     setupUI(border);
+    SetState(state, true);
+
+	Bind(wxEVT_CHECKBOX, &SyncForm::OnCheckbox, this, ID_SYNC_FORM_CHECKBOX);
+    Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { SetState(m_prevState); }, ID_SYNC_FORM_BTN_BACK);
+    Bind(wxEVT_BUTTON, &SyncForm::OnBtnContinue, this, ID_SYNC_FORM_BTN_CONTINUE);
 }
 
-void inventory::SyncForm::ShowMessage(const wxString& msg)
+void inventory::SyncForm::ShowMessage(const wxString& msg, int timeout)
 {
-    lbMessage->SetLabel(msg);
+    m_lbMessage->SetLabel(msg);
     Layout();
 }
 
 void inventory::SyncForm::BlockChanges(bool block)
-{}
+{
+    if (m_isBlocked == block)
+        return;
+
+	// armazenando estado anterior dos campos para restaurar depois
+    if (block) {
+        m_changesBlocked[m_txtCpf->GetId()] = m_txtCpf->IsEnabled();
+        m_changesBlocked[m_txtName->GetId()] = m_txtName->IsEnabled();
+        m_changesBlocked[m_txtMachineTitle->GetId()] = m_txtMachineTitle->IsEnabled();
+        m_changesBlocked[m_checkbox->GetId()] = m_checkbox->IsEnabled();
+
+        m_txtCpf->Enable(false);
+        m_txtName->Enable(false);
+        m_txtMachineTitle->Enable(false);
+        m_checkbox->Enable(false);
+    }
+    else {
+        m_txtCpf->Enable(m_changesBlocked[m_txtCpf->GetId()]);
+        m_txtName->Enable(m_changesBlocked[m_txtName->GetId()]);
+        m_txtMachineTitle->Enable(m_changesBlocked[m_txtMachineTitle->GetId()]);
+        m_checkbox->Enable(m_changesBlocked[m_checkbox->GetId()]);
+    }
+
+    m_isBlocked = block;
+    m_btnBack->Enable(!block);
+    m_btnContinue->Enable(!block);
+}
 
 void inventory::SyncForm::Clear()
 {}
 
+void inventory::SyncForm::SetState(STATE state, bool force)
+{
+	if (m_state == state && !force)
+        return;
+
+    bool add_machine_rule = m_model->HasUserRule(sysinfo::ADD_MACHINE);
+
+    if (state == GET_OWNER && !add_machine_rule) {
+		ShowMessage(wxString::FromUTF8("Você não tem permissão para cadastrar máquinas de outros usuários"));
+        return;
+    }
+
+    switch (state)
+    {
+    case GET_OWNER:
+    {
+		//const sysinfo::user* u = m_model->GetLoggedUser();
+        
+        m_lbTitle->SetLabel(wxString::FromUTF8("Dados do Proprietário"));
+        //m_checkbox->SetValue(false);
+        //m_txtCpf->SetValue(u->cpf);
+        //m_txtName->SetValue(u->name);
+
+        m_checkbox->Show();
+        m_btnBack->Hide();
+        m_lbMachineTitle->Hide();
+        m_txtMachineTitle->Hide();
+        break;
+    }
+
+    case READY:
+        m_prevState = GET_OWNER;
+        m_lbTitle->SetLabel(wxString::FromUTF8("Dados para Sincronização"));
+        m_txtCpf->Enable(false);
+        m_txtName->Enable(false);
+
+        m_checkbox->Hide();
+        m_btnBack->Show(add_machine_rule);
+        m_lbMachineTitle->Show();
+		m_txtMachineTitle->Show();
+		break;
+    }
+
+    m_state = state;
+}
+
 void inventory::SyncForm::setupUI(int border)
 {
-    wxCheckBox *checkbox;
-    wxButton *btnBack, *btnContinue;
-
     wxBoxSizer
         *sizer = new wxBoxSizer(wxVERTICAL),
         *vFormSizer = new wxBoxSizer(wxVERTICAL),
@@ -30,10 +111,10 @@ void inventory::SyncForm::setupUI(int border)
         *btnsSizer = new wxBoxSizer(wxHORIZONTAL);
 
     const wxSizerFlags& flags = wxSizerFlags().Expand().Border(wxTOP, 6);
-    sizer->Add(lbTitle = new wxStaticText(this, wxID_ANY, "-TITLE-"), 0, wxRIGHT | wxLEFT | wxTOP, border);
+    sizer->Add(m_lbTitle = new wxStaticText(this, wxID_ANY, "-TITLE-"), 0, wxRIGHT | wxLEFT | wxTOP, border);
     sizer->AddStretchSpacer();
     sizer->Add(hFormSizer, flags);
-    sizer->Add(lbMessage = new wxStaticText(this, wxID_ANY, "-MESSAGE-", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL), flags);
+    sizer->Add(m_lbMessage = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL), flags);
     sizer->AddStretchSpacer();
     sizer->Add(btnsSizer, 0, wxEXPAND | wxRIGHT | wxLEFT |  wxBOTTOM, border);
 
@@ -42,34 +123,80 @@ void inventory::SyncForm::setupUI(int border)
     hFormSizer->Add(vFormSizer, 2);
     hFormSizer->AddStretchSpacer();
 
-    vFormSizer->Add(checkbox = new wxCheckBox(this, wxID_ANY, wxString::FromUTF8("Cadastrar máquina de outro usuário")));
+    vFormSizer->Add(m_checkbox = new wxCheckBox(this, ID_SYNC_FORM_CHECKBOX, wxString::FromUTF8("Cadastrar máquina de outro usuário")));
     vFormSizer->Add(new wxStaticText(this, wxID_ANY, wxString::FromUTF8("CPF Proprietário")), flags);
-    vFormSizer->Add(txtCpf = new wxTextCtrl(this, wxID_ANY), flags);
-    vFormSizer->Add(new wxStaticText(this, wxID_ANY, wxString::FromUTF8("Nome Proprietário")), flags);
-    vFormSizer->Add(txtName = new wxTextCtrl(this, wxID_ANY), flags);
-    vFormSizer->Add(new wxStaticText(this, wxID_ANY, wxString::FromUTF8("Título da Máquina")), flags);
-    vFormSizer->Add(txtMachineTitle = new wxTextCtrl(this, wxID_ANY), flags);
+    vFormSizer->Add(m_txtCpf = new wxTextCtrl(this, wxID_ANY), flags);
+    vFormSizer->Add(m_lbName = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("Nome Proprietário")), flags);
+    vFormSizer->Add(m_txtName = new wxTextCtrl(this, wxID_ANY), flags);
+    vFormSizer->Add(m_lbMachineTitle = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("Título da Máquina")), flags);
+    vFormSizer->Add(m_txtMachineTitle = new wxTextCtrl(this, wxID_ANY), flags);
 
     // Footer Buttons
     btnsSizer->AddStretchSpacer();
-    btnsSizer->Add(btnBack = new wxButton(this, wxID_ANY, "voltar"));
-    btnsSizer->Add(btnContinue = new wxButton(this, wxID_ANY, "continuar"), 0, wxLEFT, 6);
+    btnsSizer->Add(m_btnBack = new wxButton(this, ID_SYNC_FORM_BTN_BACK, "voltar"));
+    btnsSizer->Add(m_btnContinue = new wxButton(this, ID_SYNC_FORM_BTN_CONTINUE, "continuar"), 0, wxLEFT, 6);
 
     // Styles
-    wxFont font = lbTitle->GetFont();
+    wxFont font = m_lbTitle->GetFont();
     font.SetPointSize(15);
-    lbTitle->SetFont(font);
+    m_lbTitle->SetFont(font);
 
-    lbMessage->SetForegroundColour(*wxRED);
+    m_lbMessage->SetForegroundColour(*wxRED);
+
+    const sysinfo::user* u = m_model->GetLoggedUser();
+    m_txtCpf->SetValue(u ? u->cpf : "");
+    m_txtName->SetValue(u ? u->name : "");
 
     SetSizer(sizer);
 }
 
-void inventory::SyncForm::OnBtnBack(wxCommandEvent& event)
-{}
-
 void inventory::SyncForm::OnBtnContinue(wxCommandEvent& event)
-{}
+{
+	m_lbMessage->SetLabel("");
+
+    switch (m_state)
+    {
+
+    // verificar se é para outro usuário e requisitar os dados do usuário desejado
+    case GET_OWNER:
+        if (!m_checkbox->GetValue()) {
+			SetState(READY);
+            return;
+        }
+
+		BlockChanges();
+        m_model->QueryOwner(m_txtCpf->GetValue());
+        break;
+
+    // enviar dados da máquina
+    case READY:
+		const wxString& machine_title = m_txtMachineTitle->GetValue();
+
+        if (machine_title.empty()) {
+            ShowMessage(wxString::FromUTF8("O título da máquina é obrigatório!"));
+			return;
+        }
+
+        BlockChanges();
+		m_model->SetExtractionTitle(machine_title);
+		wxCommandEvent sync_event(EVT_SYNCFORM, GetId());
+		ProcessEvent(sync_event);
+        break;
+    }
+}
 
 void inventory::SyncForm::OnCheckbox(wxCommandEvent& event)
-{}
+{
+	const sysinfo::user* u = m_model->GetLoggedUser();
+    bool
+        checked = event.GetInt(),
+        set_user = checked && u;
+
+    m_txtCpf->Enable(checked);
+    m_lbName->Show(!checked);
+    m_txtName->Show(!checked);
+
+    m_lbMessage->SetLabel("");
+    m_txtCpf->SetValue(set_user ? u->cpf : "");
+    m_txtName->SetValue(set_user ? u->name : "");
+}

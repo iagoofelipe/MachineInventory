@@ -4,9 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <windows.h>
+#include <cstdlib>
 
 const std::string sysinfo::ServerAPI::BASE_URL = "http://127.0.0.1:5000";
-const char FILE_TOKEN[] = "token.txt";
 
 static size_t write_callback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append((char*)contents, size * nmemb);
@@ -16,6 +16,10 @@ static size_t write_callback(void* contents, size_t size, size_t nmemb, std::str
 sysinfo::ServerAPI::ServerAPI()
     :curl(NULL)
 {
+    char* buffer = nullptr;
+	size_t size = 0;
+	bool tmp_success = _dupenv_s(&buffer, &size, "TEMP") == 0 && buffer != nullptr;
+	FILE_TOKEN = (tmp_success ? std::string(buffer) : ".") + "\\sysinfo_token.txt";
 }
 
 sysinfo::ServerAPI::~ServerAPI()
@@ -32,13 +36,14 @@ bool sysinfo::ServerAPI::Initialize()
     }
 
     std::ifstream token_file(FILE_TOKEN);
-    if (!token_file.is_open()) {
+    if (token_file.is_open()) {
+        std::getline(token_file, token);
+        token_file.close();
+    }
+    else {
         last_error = "Token file not found";
-        return true;
     }
 
-    std::getline(token_file, token);
-    token_file.close();
 
     return true;
 }
@@ -67,7 +72,7 @@ bool sysinfo::ServerAPI::ValidateToken()
 
 void sysinfo::ServerAPI::ClearToken()
 {
-    std::remove(FILE_TOKEN);
+    std::remove(FILE_TOKEN.c_str());
     token.clear();
 }
 
@@ -101,7 +106,7 @@ bool sysinfo::ServerAPI::Auth(const std::string& cpf, const std::string& passwor
     }
 
     token = json_token->valuestring;
-    std::ofstream token_file("token.txt");
+    std::ofstream token_file(FILE_TOKEN);
     if (token_file.is_open()) {
         token_file << token;
         token_file.close();
@@ -116,12 +121,7 @@ bool sysinfo::ServerAPI::Auth(const std::string& cpf, const std::string& passwor
     return true;
 }
 
-bool sysinfo::ServerAPI::GetUser(user* u)
-{
-    return GetUser("", u);
-}
-
-bool sysinfo::ServerAPI::GetUser(const std::string& cpf_or_id, user* u)
+bool sysinfo::ServerAPI::GetUser(user* u, const std::string& cpf_or_id)
 {
     response r;
     std::string url = BASE_URL + "/user" + (cpf_or_id.empty() ? "" : "/" + cpf_or_id);
@@ -136,7 +136,7 @@ bool sysinfo::ServerAPI::GetUser(const std::string& cpf_or_id, user* u)
         return false;
     }
 
-    cJSON* json, * json_id, * json_cpf, * json_name;
+    cJSON *json, *json_id, *json_cpf, *json_name, *json_rules_flag;
     if (!(json = cJSON_Parse(r.content.c_str()))) {
         last_error = "it wasn't possible to parse the JSON from the server response";
         return false;
@@ -145,7 +145,8 @@ bool sysinfo::ServerAPI::GetUser(const std::string& cpf_or_id, user* u)
     if (
         !(json_id = cJSON_GetObjectItem(json, "id")) || !cJSON_IsString(json_id) ||
         !(json_cpf = cJSON_GetObjectItem(json, "cpf")) || !cJSON_IsString(json_cpf) ||
-        !(json_name = cJSON_GetObjectItem(json, "name")) || !cJSON_IsString(json_name)
+        !(json_name = cJSON_GetObjectItem(json, "name")) || !cJSON_IsString(json_name) ||
+		!(json_rules_flag = cJSON_GetObjectItem(json, "rulesFlag")) || !cJSON_IsNumber(json_rules_flag)
         ) {
         last_error = "it wasn't possible to parse the user data from the server response";
         cJSON_Delete(json);
@@ -155,6 +156,7 @@ bool sysinfo::ServerAPI::GetUser(const std::string& cpf_or_id, user* u)
     u->id = json_id->valuestring;
     u->cpf = json_cpf->valuestring;
     u->name = json_name->valuestring;
+	u->rules = json_rules_flag->valueint;
 
     cJSON_Delete(json);
     return true;
@@ -194,7 +196,7 @@ bool sysinfo::ServerAPI::CreateNewUser(const std::string& cpf, const std::string
     }
 
     // coletando id criado
-    return getSfieldFromJstring(r.content, "id", id);
+    return id? getSfieldFromJstring(r.content, "id", id) : true;
 }
 
 bool sysinfo::ServerAPI::UploadMachine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id)
@@ -227,12 +229,13 @@ bool sysinfo::ServerAPI::UploadMachine(cJSON* json, const char* ownerCpf, const 
         return false;
 
     if (r.status_code != 200) {
-        getSfieldFromJstring(r.content, "message", &last_error);
+		last_error = "Failed to upload machine data, ResponseCode: " + std::to_string(r.status_code) + " Content: " + r.content;
+        //getSfieldFromJstring(r.content, "message", &last_error);
         return false;
     }
 
     // coletando id criado
-    return getSfieldFromJstring(r.content, "id", id);
+    return id? getSfieldFromJstring(r.content, "id", id) : true;
 }
 
 bool sysinfo::ServerAPI::getRequest(const std::string& url, response* r)

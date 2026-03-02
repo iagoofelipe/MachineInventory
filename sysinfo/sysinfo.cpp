@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <sstream>
+#include <iostream>
 #include <windows.h>
 #include <wbemidl.h>
 
@@ -213,10 +214,7 @@ bool sysinfo::Init()
     {
         ss << "Could not connect. Error code = 0x" << std::hex << hr;
         _error = ss.str();
-
-        pLoc->Release();
-        pSvc = NULL;
-        CoUninitialize();
+		sysinfo::Cleanup();
         return false;
     }
 
@@ -235,10 +233,7 @@ bool sysinfo::Init()
     {
         ss << "Could not set proxy blanket. Error code = 0x" << std::hex << hr;
         _error = ss.str();
-
-        pLoc->Release();
-        pSvc->Release();
-        CoUninitialize();
+        sysinfo::Cleanup();
         return false;
     }
 
@@ -249,10 +244,10 @@ void sysinfo::Cleanup()
 {
     if (!coInitialized)
         return;
-
-    CoUninitialize();
+    
     pSvc->Release();
     pLoc->Release();
+    CoUninitialize();
 
     pSvc = NULL;
     pLoc = NULL;

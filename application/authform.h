@@ -18,16 +18,15 @@ namespace inventory
     public:
         enum State
         {
-            NONE,
             UI_AUTH,
             CREATE_ACCOUNT
         };
 
-        AuthForm(wxWindow* parent, wxWindowID id, State state = UI_AUTH);
-        void SetState(State state);
+        AuthForm(wxWindow* parent, State state = UI_AUTH);
+        void SetState(State state, bool force = true);
 
         // IForm
-        void ShowMessage(const wxString& msg) override;
+        void ShowMessage(const wxString& msg, int timeout = 5000) override;
         void BlockChanges(bool block = true) override;
         void Clear() override;
 

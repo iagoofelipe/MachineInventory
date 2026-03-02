@@ -17,6 +17,14 @@ namespace sysinfo
 		std::string id;
 		std::string cpf;
 		std::string name;
+		int rules = 0;
+	};
+
+	enum USER_RULE {
+		CREATE_USERS = 1 << 1,
+		QUERY_OTHER_USERS = 1 << 2,
+		ADD_MACHINE = 1 << 3,
+		UPDATE_USER_RULES = 1 << 4,
 	};
 
 	class ServerAPI
@@ -32,17 +40,17 @@ namespace sysinfo
 		void ClearToken();
 		bool Auth(const std::string& cpf, const std::string& password);
 
-		bool GetUser(user* u);
-		bool GetUser(const std::string& cpf_or_id, user* u);
-		bool CreateNewUser(const std::string& cpf, const std::string& name, const std::string& password, std::string* id);
-		bool UploadMachine(cJSON* json, const char* ownerCpf, const char* machineTitle, std::string* id);
-		bool UploadMachine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id);
+		bool GetUser(user* u, const std::string& cpf_or_id = "");
+		bool CreateNewUser(const std::string& cpf, const std::string& name, const std::string& password, std::string* id = nullptr);
+		bool UploadMachine(cJSON* json, const char* ownerCpf, const char* machineTitle, std::string* id = nullptr);
+		bool UploadMachine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id = nullptr);
 
 	private:
 		static const std::string BASE_URL;
+
+		std::string FILE_TOKEN;
 		std::string token;
 		std::string last_error;
-
 		CURL* curl;
 
 		bool getRequest(const std::string& url, response* r);

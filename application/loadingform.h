@@ -10,10 +10,10 @@ namespace inventory
     class LoadingForm : public wxPanel, public IForm
     {
     public:
-        LoadingForm(wxWindow* parent, wxWindowID id, const wxString& msg = "inicializando componentes...");
+        LoadingForm(wxWindow* parent, const wxString& msg = "inicializando componentes...");
 
         // IForm
-        void ShowMessage(const wxString& msg) override;
+        void ShowMessage(const wxString& msg, int timeout = 5000) override;
         void BlockChanges(bool block = true) override;
         void Clear() override;
 

@@ -9,7 +9,7 @@ namespace inventory
     {
     public:
         virtual ~IForm() {}
-        virtual void ShowMessage(const wxString& msg) = 0;
+        virtual void ShowMessage(const wxString& msg, int timout = 5000) = 0;
         virtual void BlockChanges(bool block = true) = 0;
         virtual void Clear() = 0;
     };

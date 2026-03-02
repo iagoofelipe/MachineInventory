@@ -13,16 +13,10 @@ namespace inventory
     class MachineForm : public wxPanel, public IForm
     {
     public:
-        MachineForm(wxWindow* parent, wxWindowID id, int border = 0);
-
-        enum ID
-        {
-            ID_BTN_SYNC = wxID_HIGHEST + 1,
-            ID_TREE_MACHINE,
-        };
+        MachineForm(wxWindow* parent, int border = 0);
 
         // IForm
-        void ShowMessage(const wxString& msg) override;
+        void ShowMessage(const wxString& msg, int timeout = 5000) override;
         void BlockChanges(bool block = true) override;
         void Clear() override;
 

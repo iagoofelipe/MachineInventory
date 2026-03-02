@@ -71,12 +71,12 @@ class SyncForm(AbstractForm):
         match state:
             case self.State.MACHINE_OWNER:
                 self._ui.lbTitle.setText('Dados do Proprietário')
+                self._ui.checkBox.setChecked(False)
 
                 self._ui.checkBox.show()
                 self._ui.btnBack.hide()
                 self._ui.lbMachineTitle.hide()
                 self._ui.leMachineTitle.hide()
-                self._ui.checkBox.setChecked(False)
 
             case self.State.READY_TO_SYNC:
                 self._ui.leMachineTitle.setText(self._model.machinePreviousTitle())
@@ -84,9 +84,9 @@ class SyncForm(AbstractForm):
                 self._previousState = self.State.MACHINE_OWNER
 
                 self._ui.checkBox.hide()
+                self._ui.btnBack.setVisible(self._userRuleAddMachine)
                 self._ui.lbMachineTitle.show()
                 self._ui.leMachineTitle.show()
-                self._ui.btnBack.setVisible(self._userRuleAddMachine)
             
     #------------------------------------------------------------------------
     # Eventos

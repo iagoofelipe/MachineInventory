@@ -13,10 +13,10 @@ namespace inventory
     class HomeForm : public wxPanel, public IForm
     {
     public:
-        HomeForm(wxWindow* parent, wxWindowID id);
+        HomeForm(wxWindow* parent);
 
         // IForm
-        void ShowMessage(const wxString& msg) override;
+        void ShowMessage(const wxString& msg, int timeout = 5000) override;
         void BlockChanges(bool block = true) override;
         void Clear() override;
 

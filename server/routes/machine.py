@@ -23,18 +23,18 @@ machine_bp = flask.Blueprint('machine', __name__)
 @token_required(return_user_instance=True)
 def post_machine(logged_user:User):
     data = flask.request.get_json()
-    owner_by_id = 'ownerId' in data
-    owner_by_cpf = 'ownerCpf' in data
+    owner_by_id = data.get('ownerId')
+    owner_by_cpf = data.get('ownerCpf')
 
-     # caso a requisição seja para um usuário diferente do logado, verificar permissão
-    if owner_by_id or owner_by_cpf:
+    # caso a requisição seja para um usuário diferente do logado, verificar permissão
+    if (owner_by_id or owner_by_cpf) and logged_user.cpf != owner_by_cpf and logged_user.id != owner_by_id:
         if not logged_user.check_rule(User.RULE_ADD_MACHINE):
             return flask.jsonify(message='Você não possui permissão para cadastrar a máquina de outro usuário'), 401
         
         if owner_by_id and owner_by_cpf:
             return flask.jsonify(message="forneça apenas um dos parâmetros: 'ownerId' ou 'ownerCpf'"), 400
         
-        owner = User.query.get(data['ownerId']) if owner_by_id else User.query.filter_by(cpf=data['ownerCpf']).first()
+        owner = User.query.get(owner_by_id) if owner_by_id else User.query.filter_by(cpf=owner_by_cpf).first()
 
         if not owner:
             return flask.jsonify(message='Usuário não encontrado'), 404

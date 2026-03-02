@@ -1,7 +1,8 @@
 #include "loadingform.h"
+#include "id.h"
 
-inventory::LoadingForm::LoadingForm(wxWindow* parent, wxWindowID id, const wxString& msg)
-    : wxPanel(parent, id)
+inventory::LoadingForm::LoadingForm(wxWindow* parent, const wxString& msg)
+    : wxPanel(parent, ID_LOADING_FORM)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->AddStretchSpacer();
@@ -11,7 +12,7 @@ inventory::LoadingForm::LoadingForm(wxWindow* parent, wxWindowID id, const wxStr
     SetSizer(sizer);
 }
 
-void inventory::LoadingForm::ShowMessage(const wxString& msg)
+void inventory::LoadingForm::ShowMessage(const wxString& msg, int timeout)
 {
     lbMessage->SetLabel(msg);
     Layout();

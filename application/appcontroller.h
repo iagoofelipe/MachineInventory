@@ -32,10 +32,12 @@ namespace inventory
         void On_AuthForm_Auth(wxCommandEvent& event);
         void On_AuthForm_CreateAccount(wxCommandEvent& event);
         void On_AuthForm_Machine(wxCommandEvent& event);
-        
-        void On_AppModel_Message(wxCommandEvent& event);
+
         void On_AppModel_Init(wxCommandEvent& event);
         void On_AppModel_Login(wxCommandEvent& event);
+        void On_AppModel_QueryOwner(wxCommandEvent& event);
+        void On_AppModel_CreateUser(wxCommandEvent& event);
+        void On_AppModel_Server(wxCommandEvent& event);
     };
 }
 
