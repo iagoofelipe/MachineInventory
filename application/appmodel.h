@@ -22,6 +22,27 @@ namespace inventory
         wxDateTime datetime;
     };
 
+    struct user
+    {
+        wxString id;
+        wxString cpf;
+        wxString name;
+        int rules = 0;
+
+        user() {}
+
+        user(const sysinfo::user& u)
+            : user(&u)
+        {}
+
+        user(const sysinfo::user* u)
+            : id(wxString::FromUTF8(u->id))
+            , cpf(wxString::FromUTF8(u->cpf))
+            , name(wxString::FromUTF8(u->name))
+            , rules(u->rules)
+        {}
+    };
+
     class AppModel : public wxEvtHandler
     {
         AppModel();
@@ -34,10 +55,11 @@ namespace inventory
         static AppModel* GetInstance();
         
         void Initialize();
-        void Cleanup() {}
+        void Cleanup();
         
         const wxString& GetLastError() const { return lastError; }
-        const sysinfo::user* GetLoggedUser() { return isLogged? &loggedUser : nullptr; }
+        const user* GetLoggedUser() { return isLogged? &loggedUser : nullptr; }
+        const user* GetOwner() { return isLogged? &owner : nullptr; }
         const sysinfo::machine* GetMachine() { return &extraction.data; }
         const machine_extraction* GetExtraction() { return &extraction; }
         
@@ -52,17 +74,20 @@ namespace inventory
         bool HasUserRule(sysinfo::USER_RULE rule) const { return isLogged && (loggedUser.rules & rule); }
 		void QueryOwner(const wxString& cpf);
 		void CreateUser(const wxString& cpf, const wxString& name, const wxString& password);
+        void SetLoggedUserAsOwner();
 
     private:
         wxString lastError;
         sysinfo::ServerAPI server;
         machine_extraction extraction;
-        sysinfo::user
+        user
             loggedUser,
             owner;
         bool isLogged;
+        FILE* logFile = nullptr;
 
         void queueMessage(const wxString& msg);
+        void queueError(const wxString& msg);
         void queueInit(bool success);
         bool extractMachine();
     };

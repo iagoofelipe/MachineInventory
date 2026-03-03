@@ -68,18 +68,19 @@ void inventory::SyncForm::SetState(STATE state, bool force)
         return;
     }
 
+    m_txtCpf->Enable(false);
+    m_txtName->Enable(false);
+    m_state = state;
+
     switch (state)
     {
     case GET_OWNER:
     {
-		//const sysinfo::user* u = m_model->GetLoggedUser();
-        
-        m_lbTitle->SetLabel(wxString::FromUTF8("Dados do Proprietário"));
-        //m_checkbox->SetValue(false);
-        //m_txtCpf->SetValue(u->cpf);
-        //m_txtName->SetValue(u->name);
+		m_lbTitle->SetLabel(wxString::FromUTF8("Dados do Proprietário"));
+        SetUser(m_model->GetLoggedUser());
 
         m_checkbox->Show();
+        m_checkbox->SetValue(false);
         m_btnBack->Hide();
         m_lbMachineTitle->Hide();
         m_txtMachineTitle->Hide();
@@ -89,17 +90,24 @@ void inventory::SyncForm::SetState(STATE state, bool force)
     case READY:
         m_prevState = GET_OWNER;
         m_lbTitle->SetLabel(wxString::FromUTF8("Dados para Sincronização"));
-        m_txtCpf->Enable(false);
-        m_txtName->Enable(false);
+        SetUser(m_model->GetOwner());
 
         m_checkbox->Hide();
         m_btnBack->Show(add_machine_rule);
+        m_lbName->Show();
+        m_txtName->Show();
         m_lbMachineTitle->Show();
 		m_txtMachineTitle->Show();
 		break;
     }
 
-    m_state = state;
+    Layout();
+}
+
+void inventory::SyncForm::SetUser(const user* u)
+{
+    m_txtCpf->SetValue(u ? u->cpf : "");
+    m_txtName->SetValue(u ? u->name : "");
 }
 
 void inventory::SyncForm::setupUI(int border)
@@ -143,10 +151,6 @@ void inventory::SyncForm::setupUI(int border)
 
     m_lbMessage->SetForegroundColour(*wxRED);
 
-    const sysinfo::user* u = m_model->GetLoggedUser();
-    m_txtCpf->SetValue(u ? u->cpf : "");
-    m_txtName->SetValue(u ? u->name : "");
-
     SetSizer(sizer);
 }
 
@@ -159,14 +163,24 @@ void inventory::SyncForm::OnBtnContinue(wxCommandEvent& event)
 
     // verificar se é para outro usuário e requisitar os dados do usuário desejado
     case GET_OWNER:
+    {
         if (!m_checkbox->GetValue()) {
+            m_model->SetLoggedUserAsOwner();
 			SetState(READY);
             return;
         }
 
+        const wxString& cpf = m_txtCpf->GetValue();
+
+        if (cpf.IsEmpty()) {
+            ShowMessage("Preencha o CPF para prosseguir!");
+            return;
+        }
+
 		BlockChanges();
-        m_model->QueryOwner(m_txtCpf->GetValue());
+        m_model->QueryOwner(cpf);
         break;
+    }
 
     // enviar dados da máquina
     case READY:
@@ -187,16 +201,15 @@ void inventory::SyncForm::OnBtnContinue(wxCommandEvent& event)
 
 void inventory::SyncForm::OnCheckbox(wxCommandEvent& event)
 {
-	const sysinfo::user* u = m_model->GetLoggedUser();
-    bool
-        checked = event.GetInt(),
-        set_user = checked && u;
+    bool checked = event.GetInt();
+	const user* u = checked? nullptr : m_model->GetLoggedUser();
 
     m_txtCpf->Enable(checked);
     m_lbName->Show(!checked);
     m_txtName->Show(!checked);
 
     m_lbMessage->SetLabel("");
-    m_txtCpf->SetValue(set_user ? u->cpf : "");
-    m_txtName->SetValue(set_user ? u->name : "");
+    m_txtCpf->SetValue(u ? u->cpf : "");
+    m_txtName->SetValue(u ? u->name : "");
+    Layout();
 }

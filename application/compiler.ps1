@@ -18,7 +18,7 @@ $FILE_RSC_OUT = "$PATH_BUILD\resources_mingw.res"
 # FLAGS
 $FLAGS_SYSINFO = @("-L../sysinfo/lib", "-lsysinfo", "-lwbemuuid", "-lcurl", "-loleaut32", "-lole32")
 $FLAGS_WX = @("-lpthread", "-mwindows", "-L$PATH_MINGW64/lib", "-lwx_mswu_xrc-3.2", "-lwx_mswu_html-3.2", "-lwx_mswu_qa-3.2", "-lwx_mswu_core-3.2", "-lwx_baseu_xml-3.2", "-lwx_baseu_net-3.2", "-lwx_baseu-3.2")
-$FLAGS_INCLUDE = @("-I../sysinfo/include", "-Iinclude", "-I$PATH_MINGW64/lib/wx/include/msw-unicode-3.2", "-I$PATH_MINGW64/include/wx-3.2", "-DWXUSINGDLL", "-D__WXMSW__")
+$FLAGS_INCLUDE = @("-I..", "-I$PATH_MINGW64/lib/wx/include/msw-unicode-3.2", "-I$PATH_MINGW64/include/wx-3.2", "-DWXUSINGDLL", "-D__WXMSW__")
 
 # Others
 $SOURCES = $project.sources.file | ForEach-Object { $_.path -replace "/", "\" }

@@ -29,6 +29,7 @@ namespace inventory
         wxTreeCtrl* tree;
         wxStaticText* lastSync;
         wxButton* btnSync;
+        const wxString syncTextFormat;
         
         void setupUI(int border);
         void setupSummary();

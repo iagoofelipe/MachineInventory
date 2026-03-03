@@ -16,10 +16,8 @@ static size_t write_callback(void* contents, size_t size, size_t nmemb, std::str
 sysinfo::ServerAPI::ServerAPI()
     :curl(NULL)
 {
-    char* buffer = nullptr;
-	size_t size = 0;
-	bool tmp_success = _dupenv_s(&buffer, &size, "TEMP") == 0 && buffer != nullptr;
-	FILE_TOKEN = (tmp_success ? std::string(buffer) : ".") + "\\sysinfo_token.txt";
+    char* buffer = std::getenv("TEMP");
+	FILE_TOKEN = (buffer ? std::string(buffer) : ".") + "\\sysinfo_token.txt";
 }
 
 sysinfo::ServerAPI::~ServerAPI()
@@ -181,10 +179,15 @@ bool sysinfo::ServerAPI::CreateNewUser(const std::string& cpf, const std::string
         return false;
     }
 
-    response r;
-    bool request_success = postRequest(BASE_URL + "/user", cJSON_PrintUnformatted(json), &r);
+    char *buffer = cJSON_PrintUnformatted(json);
+    std::string data = buffer;
+    
+    cJSON_free(buffer);
     cJSON_Delete(json);
     json = NULL;
+    
+    response r;
+    bool request_success = postRequest(BASE_URL + "/user", data, &r);
 
     if (!request_success) {
         return false;
@@ -225,12 +228,16 @@ bool sysinfo::ServerAPI::UploadMachine(cJSON* json, const char* ownerCpf, const 
 
     // enviando dados para o servidor
     response r;
-    if (!postRequest(BASE_URL + "/machine", cJSON_PrintUnformatted(json), &r))
+    char *buffer = cJSON_PrintUnformatted(json);
+    std::string data = buffer;
+    cJSON_free(buffer);
+    
+    if (!postRequest(BASE_URL + "/machine", data, &r))
         return false;
 
     if (r.status_code != 200) {
-		last_error = "Failed to upload machine data, ResponseCode: " + std::to_string(r.status_code) + " Content: " + r.content;
-        //getSfieldFromJstring(r.content, "message", &last_error);
+		// last_error = "Failed to upload machine data, ResponseCode: " + std::to_string(r.status_code) + " Content: " + r.content;
+        getSfieldFromJstring(r.content, "message", &last_error);
         return false;
     }
 
@@ -268,14 +275,14 @@ bool sysinfo::ServerAPI::postRequest(const std::string& url, const std::string& 
     curl_slist* headers = NULL;
     CURLcode res;
 
+    headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
+    headers = curl_slist_append(headers, ("Authorization: " + token).c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r->content);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    headers = curl_slist_append(headers, ("Authorization: " + token).c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     res = curl_easy_perform(curl);
 
@@ -296,7 +303,7 @@ bool sysinfo::ServerAPI::getSfieldFromJstring(const std::string& content, const 
         * json_id = NULL;
 
     if ((json = cJSON_Parse(content.c_str())) == NULL) {
-        last_error = "it wasn't possible to extract the JSON from string";
+        last_error = "JSONBodyError: " + content;
         return false;
     }
 
@@ -307,7 +314,7 @@ bool sysinfo::ServerAPI::getSfieldFromJstring(const std::string& content, const 
         !(json_id = cJSON_GetObjectItem(json, c_field)) ||
         !cJSON_IsString(json_id)
         ) {
-        last_error = "it wasn't possible to get the" + field + "from string";
+        last_error = "JSONFieldError: <Body=" + content + " Field='" + field + "'>";
         cJSON_Delete(json);
         return false;
     }

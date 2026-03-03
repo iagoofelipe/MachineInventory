@@ -24,6 +24,19 @@ inventory::AppModel* inventory::AppModel::GetInstance()
 
 void inventory::AppModel::Initialize()
 {
+    // configurando logs
+    char* buffer = std::getenv("TMP");
+    std::string filename = (buffer? buffer : ".") + (std::string)"\\MachineInventoryLog.log";
+    logFile = fopen(filename.c_str(), "a");
+
+    if (logFile) {
+        wxLogStderr* f = new wxLogStderr(logFile);
+        wxLog::SetActiveTarget(f);
+        wxLog::AddTraceMask("TIMESTAMP");
+    } else {
+        wxLogError("Não foi possível criar/abrir o arquivo de log!");
+    }
+
     std::thread worker([this] {
         if (!extractMachine()) {
             queueInit(0);
@@ -32,15 +45,16 @@ void inventory::AppModel::Initialize()
 
         queueMessage(wxString::FromUTF8("inicialiando conexão com servidor..."));
         if (!server.Initialize()) {
-            queueMessage(wxString::FromUTF8(server.GetLastError()));
+            queueError(wxString::FromUTF8(server.GetLastError()));
             queueInit(0);
             return;
         }
 
         queueMessage(wxString::FromUTF8("coletando dados do usuário..."));
         isLogged = false;
-        if (server.HasToken()) {
-            isLogged = server.GetUser(&loggedUser);
+        sysinfo::user u;
+        if (server.HasToken() && (isLogged = server.GetUser(&u))) {
+            owner = loggedUser = u;
         }
 
         queueInit(1);
@@ -49,20 +63,29 @@ void inventory::AppModel::Initialize()
     worker.detach();
 }
 
+void inventory::AppModel::Cleanup()
+{
+    delete wxLog::SetActiveTarget(nullptr);
+    if (logFile) {
+        fclose(logFile);
+        logFile = nullptr;
+    }
+}
+
 void inventory::AppModel::Auth(const wxString& cpf, const wxString& password)
 {
     std::thread worker([this, cpf, password] {
-
+        sysinfo::user u;
         if (
-            !server.Auth(cpf.ToStdString(), password.ToStdString()) ||
-            !server.GetUser(&loggedUser)
+            !server.Auth(cpf.utf8_str().data(), password.utf8_str().data()) ||
+            !server.GetUser(&u)
         ) {
             isLogged = false;
-            queueMessage(wxString::FromUTF8(server.GetLastError()));
+            queueError(wxString::FromUTF8(server.GetLastError()));
         }
         else {
             isLogged = true;
-            owner = loggedUser;
+            owner = loggedUser = u;
         }
 
         wxCommandEvent* evt = new wxCommandEvent(EVT_APPMODEL_LOGIN);
@@ -101,10 +124,10 @@ void inventory::AppModel::SendExtractionToServer()
     std::thread worker([this] {
         wxCommandEvent* evt = new wxCommandEvent(EVT_APPMODEL_SERVER);
 		queueMessage(wxString::FromUTF8("enviando dados para o servidor..."));
-        int success = server.UploadMachine(&extraction.data, owner.cpf.c_str(), extraction.title.c_str());
+        int success = server.UploadMachine(&extraction.data, owner.cpf.utf8_str().data(), extraction.title.utf8_str().data());
         
         if (!success)
-            queueMessage(wxString::Format("erro ao enviar os dados: %s", server.GetLastError()));
+            queueError(wxString::Format("erro ao enviar os dados: %s", server.GetLastError()));
         else
             queueMessage(wxString::FromUTF8("dados enviados com êxito"));
 
@@ -119,17 +142,26 @@ void inventory::AppModel::QueryOwner(const wxString& cpf)
 {
     std::thread worker([this, cpf] {
         wxCommandEvent* evt = new wxCommandEvent(EVT_APPMODEL_QUERY_OWNER);
+        sysinfo::user u;
+        int success;
 
-        if (server.GetUser(&owner, cpf.ToStdString())) {
-            evt->SetInt(1);
-            evt->SetClientData(&owner);
+        if (loggedUser.cpf == cpf) {
+            if (owner.id != loggedUser.id)
+                owner = loggedUser;
+            
+            success = 1;
+        }
+        else if (server.GetUser(&u, cpf.utf8_str().data())) {
+            owner = u;
+            success = 1;
         }
         else {
-            evt->SetInt(0);
-            evt->SetClientData(nullptr);
-            queueMessage(wxString::FromUTF8(server.GetLastError()));
+            success = 0;
+            queueError(wxString::FromUTF8(server.GetLastError()));
         }
 
+        evt->SetInt(success);
+        evt->SetClientData(success? (void*)GetOwner() : nullptr);
         QueueEvent(evt);
     });
 
@@ -142,8 +174,8 @@ void inventory::AppModel::CreateUser(const wxString& cpf, const wxString& name, 
         wxCommandEvent* evt = new wxCommandEvent(EVT_APPMODEL_CREATE_USER);
         int success;
 
-        if (!(success = server.CreateNewUser(cpf.ToStdString(), name.ToStdString(), password.ToStdString())))
-            queueMessage(wxString::FromUTF8(server.GetLastError()));
+        if (!(success = server.CreateNewUser(cpf.utf8_str().data(), name.utf8_str().data(), password.utf8_str().data())))
+            queueError(wxString::FromUTF8(server.GetLastError()));
 
         evt->SetInt(success);
 		QueueEvent(evt);
@@ -152,11 +184,22 @@ void inventory::AppModel::CreateUser(const wxString& cpf, const wxString& name, 
     worker.detach();
 }
 
+void inventory::AppModel::SetLoggedUserAsOwner()
+{
+    owner = loggedUser;
+}
+
 void inventory::AppModel::queueMessage(const wxString& msg)
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_APPMODEL_MESSAGE);
     evt->SetString(msg);
     QueueEvent(evt);
+}
+
+void inventory::AppModel::queueError(const wxString& msg)
+{
+    wxLogError(msg);
+    queueMessage(msg);
 }
 
 void inventory::AppModel::queueInit(bool success)

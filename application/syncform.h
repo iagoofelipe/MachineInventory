@@ -28,6 +28,7 @@ namespace inventory
         void Clear() override;
 
 		void SetState(STATE state, bool force = false);
+        void SetUser(const user* u);
 
     private:
         wxCheckBox

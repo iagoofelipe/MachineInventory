@@ -166,4 +166,15 @@ def get_machines(user:User, ident:str):
     else:
         owner = user
 
-    return flask.jsonify(userId=owner.id, userName=owner.name, machines=[m.dto(versions=True) for m in owner.machines])
+    machines = []
+
+    for m in owner.machines:
+        latest_version = db.session.query(MachineExtra) \
+            .filter(MachineExtra.machine_id == m.id) \
+            .order_by(desc(MachineExtra.config_date)) \
+            .first()
+        
+        machines.append(latest_version.dto(machine=True, optimized_programs=True))
+
+    # return flask.jsonify(userId=owner.id, userName=owner.name, machines=[m.dto(versions=True) for m in owner.machines])
+    return flask.jsonify(userId=owner.id, userName=owner.name, machines=machines)

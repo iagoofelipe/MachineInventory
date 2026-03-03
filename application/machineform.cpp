@@ -8,6 +8,7 @@
 inventory::MachineForm::MachineForm(wxWindow* parent, int border)
     : wxPanel(parent, ID_MACHINE_FORM)
     , model(AppModel::GetInstance())
+    , syncTextFormat(wxString::FromUTF8("Sincronizado em %d/%m às %H:%M"))
 {
     setupUI(border);
     
@@ -83,7 +84,7 @@ void inventory::MachineForm::setupUI(int border)
     sizer->AddSpacer(6);
     sizer->Add(footerSizer, 0, wxEXPAND | wxBOTTOM | wxRIGHT | wxLEFT, border);
 
-    const wxString& lastSyncText = extraction->datetime.Format("Sincronizado em %H:%M %d/%m");
+    const wxString& lastSyncText = extraction->datetime.Format(syncTextFormat);
     footerSizer->Add(lastSync = new wxStaticText(this, wxID_ANY, lastSyncText), 0, wxALIGN_CENTER_VERTICAL);
     footerSizer->AddStretchSpacer();
     footerSizer->Add(btnSync = new wxButton(this, ID_MACHINE_FORM_BTN_SYNC, "sincronizar"));
@@ -248,7 +249,7 @@ void inventory::MachineForm::OnAppModelMachine(wxCommandEvent& event)
         return;
         
     const machine_extraction* extraction = (const machine_extraction*)event.GetClientData();
-    lastSync->SetLabel(extraction->datetime.Format("Sincronizado em %H:%M %d/%m"));
+    lastSync->SetLabel(extraction->datetime.Format(syncTextFormat));
 
     UpdateTreeSelection();
 }

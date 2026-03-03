@@ -1,14 +1,14 @@
 <project name="MachineInventory">
-    <sources root="src">
-        <file path="controllers/appcontroller.cpp"/>
-        <file path="models/appmodel.cpp"/>
-        <file path="views/appview.cpp"/>
-        <file path="views/app.cpp"/>
-        <file path="views/forms/authform.cpp"/>
-        <file path="views/forms/loadingform.cpp"/>
-        <file path="views/forms/syncform.cpp"/>
-        <file path="views/forms/machineform.cpp"/>
-        <file path="views/forms/homeform.cpp"/>
+    <sources root=".">
+        <file path="app.cpp"/>
+        <file path="appcontroller.cpp"/>
+        <file path="appmodel.cpp"/>
+        <file path="appview.cpp"/>
+        <file path="authform.cpp"/>
+        <file path="homeform.cpp"/>
+        <file path="loadingform.cpp"/>
+        <file path="machineform.cpp"/>
         <file path="main.cpp"/>
+        <file path="syncform.cpp"/>
     </sources>
 </project>
