@@ -24,7 +24,7 @@ class Server:
     
     def command_runserver(self):
         app = self.__setupApp()
-        app.run(debug=True)
+        app.run(host='0.0.0.0', port=443, debug=True)
         
     def command_generatecfg(self):
         self.generate_secret_key()
