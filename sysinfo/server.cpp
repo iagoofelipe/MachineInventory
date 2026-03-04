@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <cstdlib>
 
-const std::string sysinfo::ServerAPI::BASE_URL = "http://127.0.0.1:5000";
+const std::string sysinfo::ServerAPI::BASE_URL = "http://127.0.0.1:443";
 
 static size_t write_callback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     userp->append((char*)contents, size * nmemb);
