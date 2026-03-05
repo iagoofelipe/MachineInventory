@@ -8,7 +8,7 @@ from dataclasses import dataclass
 class Disk:
     id: str
     name: str
-    serialNumber: str
+    serial_number: str
     model: str
 
 @dataclass
@@ -30,23 +30,23 @@ class Program:
     name: str
     publisher: str
     version: str
-    estimatedSize: str
-    currentUserOnly: bool
+    estimated_size: str
+    current_user_only: bool
 
 @dataclass
 class MachineData:
     id: str
     os: str
     title: str
-    osArchitecture: str
-    osInstallDate: str
-    osVersion: str
-    osSerialNumber: str
+    os_architecture: str
+    os_install_date: str
+    os_version: str
+    os_serial_number: str
     organization: str
     motherboard: str
-    motherboardManufacturer: str
+    motherboard_manufacturer: str
     processor: str
-    processorClockSpeed: str
+    processor_clock_speed: str
 
 @dataclass
 class MachineVersion:
@@ -62,15 +62,15 @@ class MachineVersion:
 
 class Machine:
     COLUMNS_BY_TABLE = { # todas as tabelas devem possuir machine_version_id e id (suprimidos para funcionar em todas as funções)
-        'machine': ['os', 'title', "osArchitecture", "osInstallDate", "osVersion", "osSerialNumber", "organization", "motherboard", "motherboardManufacturer", "processor", "processorClockSpeed"],
-        'disk': ['name', 'serialNumber', 'model'],
-        'network_adapter': ['name', 'mac'],
-        'physical_memory': ['name', 'capacity', 'speed'],
-        'program': ['name', 'publisher', 'version', 'estimatedSize', 'currentUserOnly'],
+        'machine': ['os', 'title', "os_architecture", "os_install_date", "os_version", "os_serial_number", "organization", "motherboard", "motherboard_manufacturer", "processor", "processor_clock_speed"],
+        'machine_disk': ['name', 'serial_number', 'model'],
+        'machine_network_adapter': ['name', 'mac'],
+        'machine_physical_memory': ['name', 'capacity', 'speed'],
+        'machine_program': ['name', 'publisher', 'version', 'estimated_size', 'current_user_only'],
     }
     
     def __init__(self):
-        self._conn = sqlite3.connect('database.db')
+        self._conn = sqlite3.connect(r'..\tests\instance\tests_version.db')
         self._cursor = self._conn.cursor()
 
     def close(self):
@@ -104,7 +104,7 @@ class Machine:
         # coletar ids da versão
         for v in linked_list_versions:
             # coletando dados removidos entre a versão anterior e a atual
-            self._cursor.execute('SELECT ref_id FROM version_remove WHERE machine_version_id=?', (v, ))
+            self._cursor.execute('SELECT ref_id FROM machine_remove WHERE machine_version_id=?', (v, ))
             to_ignore.extend(r[0] for r in self._cursor.fetchall())
 
             for table in self.COLUMNS_BY_TABLE:
@@ -124,10 +124,10 @@ class Machine:
             mac=r[1],
             previous_id=r[2],
             machine=[ MachineData(k, *v) for k, v in data['machine'].items() ][0],
-            disks=[ Disk(k, *v) for k, v in data['disk'].items() ],
-            network_adapters=[ NetworkAdapter(k, *v) for k, v in data['network_adapter'].items() ],
-            physical_memories=[ PhysicalMemory(k, *v) for k, v in data['physical_memory'].items() ],
-            programs=[ Program(k, *v) for k, v in data['program'].items() ],
+            disks=[ Disk(k, *v) for k, v in data['machine_disk'].items() ],
+            network_adapters=[ NetworkAdapter(k, *v) for k, v in data['machine_network_adapter'].items() ],
+            physical_memories=[ PhysicalMemory(k, *v) for k, v in data['machine_physical_memory'].items() ],
+            programs=[ Program(k, *v) for k, v in data['machine_program'].items() ],
         )
     
     def uploadNewVersion(self, data:MachineVersion) -> MachineVersion:
@@ -139,10 +139,10 @@ class Machine:
         # table: { id: data }      data deve ser uma lista seguindo a mesma ordem de COLUMNS_BY_TABLE
         props = {
             'machine': { machine_id: tuple(getattr(data.machine, f) for f in self.COLUMNS_BY_TABLE['machine']) },
-            'disk': { str(uuid4()): (o.name, o.serialNumber, o.model) for o in data.disks },
-            'network_adapter': { str(uuid4()): (o.name, o.mac) for o in data.network_adapters },
-            'physical_memory': { str(uuid4()): (o.name, o.capacity, o.speed) for o in data.physical_memories },
-            'program': { str(uuid4()): (o.name, o.publisher, o.version, o.estimatedSize, o.currentUserOnly) for o in data.programs },
+            'machine_disk': { str(uuid4()): (o.name, o.serial_number, o.model) for o in data.disks },
+            'machine_network_adapter': { str(uuid4()): (o.name, o.mac) for o in data.network_adapters },
+            'machine_physical_memory': { str(uuid4()): (o.name, o.capacity, o.speed) for o in data.physical_memories },
+            'machine_program': { str(uuid4()): (o.name, o.publisher, o.version, o.estimated_size, o.current_user_only) for o in data.programs },
         }
 
         datetime = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -161,10 +161,10 @@ class Machine:
                 if ids_to_add:
                     self._cursor.executemany(f'INSERT INTO {table} (id, {extra_cols}, machine_version_id) VALUES (?,{extra_places},?)', [ [_id, *prop[_id], version_id] for _id in ids_to_add ])
 
-                # removendo valores desatualizados COLUMNS: id, table_name, ref_id, machine_version_id
+                # removendo valores desatualizados COLUMNS: id, table, ref_id, machine_version_id
                 changes.extend([ [str(uuid4()), table, id_to_remove, version_id] for id_to_remove in ids_to_remove ])
 
-            self._cursor.executemany('INSERT INTO version_remove (id, table_name, ref_id, machine_version_id) VALUES (?,?,?,?)', changes)
+            self._cursor.executemany('INSERT INTO machine_remove (id, `table`, ref_id, machine_version_id) VALUES (?,?,?,?)', changes)
 
         else:
             for table, prop in props.items():
@@ -199,7 +199,6 @@ class Machine:
         return ids_to_remove, ids_to_add
 
 m = Machine()
-# print(m.getVersion('D8:5E:D3:E8:B6:ED', 'mac'))
 
 data = MachineVersion(
     id=None,
@@ -210,18 +209,18 @@ data = MachineVersion(
         id=None,
         os='Microsoft Windows 11 Pro',
         title='GUI',
-        osArchitecture="64 bits",
-        osInstallDate="2026-01-19 15:15:23",
-        osVersion="10.0.26200",
-        osSerialNumber="00330-80000-00000-AA779",
+        os_architecture="64 bits",
+        os_install_date="2026-01-19 15:15:23",
+        os_version="10.0.26200",
+        os_serial_number="00330-80000-00000-AA779",
         organization=None,
         motherboard="B450M DS3H V2",
-        motherboardManufacturer="Gigabyte Technology Co., Ltd.",
+        motherboard_manufacturer="Gigabyte Technology Co., Ltd.",
         processor="AMD Ryzen 5 4500 6-Core Processor",
-        processorClockSpeed="3.60 GHz"
+        processor_clock_speed="3.60 GHz"
     ),
     disks=[
-        Disk(id=None, name="KINGSTON SNV2S1000G", serialNumber=None, model="KINGSTON SNV2S1000G"),
+        Disk(id=None, name="KINGSTON SNV2S1000G", serial_number=None, model="KINGSTON SNV2S1000G"),
     ],
     network_adapters=[
         NetworkAdapter(id=None, name="Realtek Gaming GbE Family Controller", mac="D8:5E:D3:E8:B6:ED"),
@@ -238,37 +237,38 @@ data = MachineVersion(
             name="Git",
             publisher="The Git Development Community",
             version="2.52.0",
-            estimatedSize="346 MB",
-            currentUserOnly=False,
+            estimated_size="346 MB",
+            current_user_only=False,
         ),
         Program(
             id=None,
             name="IntelliJ IDEA 2025.3.2",
             publisher="JetBrains s.r.o.",
             version="253.30387.90",
-            estimatedSize="0 MB",
-            currentUserOnly=False,
+            estimated_size="0 MB",
+            current_user_only=False,
         ),
         Program(
             id=None,
             name="Riot Vanguard",
             publisher="Riot Games, Inc.",
             version="2.52.0",
-            estimatedSize="0 MB",
-            currentUserOnly=False,
+            estimated_size="0 MB",
+            current_user_only=False,
         ),
         Program(
             id=None,
             name="Valorant",
             publisher="Riot Games, Inc.",
             version="2.52.0",
-            estimatedSize="25 GB",
-            currentUserOnly=True,
+            estimated_size="25 GB",
+            current_user_only=True,
         ),
     ]
 )
 
-print(m.uploadNewVersion(data))
+print(m.getVersion('D8:5E:D3:E8:B6:ED', 'mac'))
+# print(m.uploadNewVersion(data))
 
 m.close()
 del m
