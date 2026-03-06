@@ -106,8 +106,8 @@ void inventory::SyncForm::SetState(STATE state, bool force)
 
 void inventory::SyncForm::SetUser(const user* u)
 {
-    m_txtCpf->SetValue(u ? u->cpf : "");
-    m_txtName->SetValue(u ? u->name : "");
+    m_txtCpf->SetValue(u ? u->cpf : (wxString)"");
+    m_txtName->SetValue(u ? u->name : (wxString)"");
 }
 
 void inventory::SyncForm::setupUI(int border)
@@ -209,7 +209,7 @@ void inventory::SyncForm::OnCheckbox(wxCommandEvent& event)
     m_txtName->Show(!checked);
 
     m_lbMessage->SetLabel("");
-    m_txtCpf->SetValue(u ? u->cpf : "");
-    m_txtName->SetValue(u ? u->name : "");
+    m_txtCpf->SetValue(u ? u->cpf : (wxString)"");
+    m_txtName->SetValue(u ? u->name : (wxString)"");
     Layout();
 }

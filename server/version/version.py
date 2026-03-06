@@ -267,8 +267,8 @@ data = MachineVersion(
     ]
 )
 
-print(m.getVersion('D8:5E:D3:E8:B6:ED', 'mac'))
-# print(m.uploadNewVersion(data))
+# print(*m.getVersion('D8:5E:D3:E8:B6:ED', 'mac').items(), sep='\n')
+print(m.uploadNewVersion(data))
 
 m.close()
 del m

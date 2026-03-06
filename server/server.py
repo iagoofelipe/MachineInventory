@@ -7,24 +7,30 @@ import getpass
 from tools.consts import PATH_TEMPLATES, PATH_ROOT, PATH_ASSETS, FILE_CONFIG
 from tools.utils import validate_cpf
 from models.database import db
-from models.user import User, ADMIN_RULES
+from models.user import UserModel, ADMIN_RULES
 
 from routes.machine import machine_bp
 from routes.user import user_bp
 from routes.auth import auth_bp
 
 class Server:
-    def __init__(self):
+    def __init__(self, setup=False):
         self.__config = ConfigParser()
         self.__parser = ArgumentParser('Machine Inventory Server')
         self.__parser.add_argument('command', choices=['runserver', 'generatecfg', 'createadmin'], help='opções de execução do servidor')
         self.__parser.add_argument('--name', help='nome do usuário')
         self.__parser.add_argument('--password', help='senha do usuário')
         self.__parser.add_argument('--cpf', help='CPF do usuário')
+
+        self._app = self.__setupApp() if setup else None
     
+    def getApp(self):
+        return self._app
+
     def command_runserver(self):
         app = self.__setupApp()
         app.run(host='0.0.0.0', port=443, debug=True)
+
         
     def command_generatecfg(self):
         self.generate_secret_key()
@@ -55,11 +61,11 @@ class Server:
         app = self.__setupApp()
 
         with app.app_context():
-            if User.query.filter_by(cpf=cpf).first():
+            if UserModel.query.filter_by(cpf=cpf).first():
                 print('Já existe um usuário cadastrado com esse CPF!')
                 return
 
-            admin = User(name=name, cpf=cpf)
+            admin = UserModel(name=name, cpf=cpf)
             admin.update_rules(ADMIN_RULES)
             admin.set_password(password)
             db.session.add(admin)

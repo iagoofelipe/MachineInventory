@@ -12,7 +12,7 @@ from flask import jsonify, request, Response
 from typing import Callable
 from functools import wraps
 
-from models.user import User
+from models.user import UserModel
 
 def generate_token(userId:str, duration:dt.timedelta=None):
     """ gera um token para o usuário informado com duração de 30 minutos """
@@ -50,7 +50,7 @@ def token_required(return_user_id=False, return_user_instance=False) -> Callable
                     user = userId
 
                 elif return_user_instance:
-                    user = User.query.get(userId)
+                    user = UserModel.query.get(userId)
 
                     if user is None:
                         raise ValueError()
@@ -81,3 +81,15 @@ def get_default_mac(values:list[dict[str, str]]):
     # caso não haja nenhuma correspondência, retorna o primeiro
     with_mac = list(filter(lambda v: v['mac'], values))
     return with_mac[0]['mac'] if with_mac else ''
+
+def model_to_dict(obj, ignore:set[str]=None, include:set[str]=None, include_all=True, rename:dict={}) -> dict:
+    _all = { c.name for c in obj.__table__.columns }
+    fields = _all if include_all else set()
+
+    if include:
+        fields |= _all & include
+
+    if ignore:
+        fields -= ignore
+
+    return { rename.get(f, f): getattr(obj, f) for f in fields }

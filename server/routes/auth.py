@@ -1,7 +1,7 @@
 import flask
 import datetime as dt
 
-from models.user import User
+from models.user import UserModel
 from tools.utils import generate_token, token_required
 
 auth_bp = flask.Blueprint('auth', __name__)
@@ -17,7 +17,7 @@ def post_auth():
         if not cpf or not password:
             raise ValueError()
         
-        user = User.query.filter_by(cpf=cpf).first()
+        user = UserModel.query.filter_by(cpf=cpf).first()
         if not user or not user.check_password(password):
             return flask.jsonify(message="Usuário ou senha incorretos"), 401
 

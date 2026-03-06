@@ -15,7 +15,8 @@ USER_RULES = {
 USER_RULE_BY_FLAGS = { v[0]: k for k, v in USER_RULES.items() }
 ADMIN_RULES = tuple(USER_RULES)
 
-class User(db.Model):
+class UserModel(db.Model):
+    __tablename__ = 'user'
     SEP_RULES = '|'
 
     # User Rules
@@ -30,7 +31,8 @@ class User(db.Model):
     password_hash:str = db.Column(db.String(128), nullable=False)
     rules_combinated: int = db.Column(db.Integer, nullable=False, default=0)
     rules_splitted: str = db.Column(db.String(100), nullable=False, default='')
-    machines = db.relationship('Machine', backref='owner', lazy=True)
+    # machines = db.relationship('Machine', backref='owner', lazy=True)
+    machines = db.relationship('MachineVersionModel', backref='owner', lazy=True)
 
     def __repr__(self):
         return f"<User id='{self.id}' name='{self.name}'>"
@@ -73,16 +75,16 @@ class User(db.Model):
         self.rules_combinated = rules_combinated
         self.rules_splitted = self.SEP_RULES.join(map(lambda x: USER_RULE_BY_FLAGS[x], final_rules))
     
-    def dto(self, machines=False, **kwargs):
-        d = {
-            'id': self.id,
-            'name': self.name, 
-            'cpf': self.cpf,
-            'rules': self.rules_splitted.split(self.SEP_RULES) if self.rules_splitted else [],
-            'rulesFlag': self.rules_combinated
-        }
+    # def dto(self, machines=False, **kwargs):
+    #     d = {
+    #         'id': self.id,
+    #         'name': self.name, 
+    #         'cpf': self.cpf,
+    #         'rules': self.rules_splitted.split(self.SEP_RULES) if self.rules_splitted else [],
+    #         'rulesFlag': self.rules_combinated
+    #     }
 
-        if machines:
-            d['machines'] = [ m.dto(**kwargs) for m in self.machines ]
+    #     if machines:
+    #         d['machines'] = [ m.dto(**kwargs) for m in self.machines ]
 
-        return d
+    #     return d
