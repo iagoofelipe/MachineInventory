@@ -38,7 +38,7 @@ class MachineVersionModel(db.Model):
     def __repr__(self):
         return f'<MachineVersionModel id="{self.id}">'
 
-    def dto(self):
+    def dto(self) -> dict:
         return self.get(self.id, 'id', as_dict=True, dict_ignore={'machine_version_id'})
 
     @classmethod
@@ -72,7 +72,7 @@ class MachineVersionModel(db.Model):
         v = MachineVersionData(
             version=version, machine=None, programs=None, disks=None, adapters=None, memories=None
         )
-        d = model_to_dict(version) if as_dict else None
+        d = model_to_dict(version, dict_ignore) if as_dict else None
         props = (
             ('machine', MachineModel, TablesRemove.MACHINE),
             ('programs', ProgramModel, TablesRemove.PROGRAM),
@@ -94,6 +94,7 @@ class MachineVersionModel(db.Model):
 
         if as_dict:
             d['machine'] = d['machine'][0]
+            d['datetime'] = d['datetime'].strftime('%Y-%m-%d %H:%M:%S')
         else:
             v.machine = v.machine[0]
 

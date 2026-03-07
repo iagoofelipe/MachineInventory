@@ -97,109 +97,22 @@ def post_machine(logged_user:UserModel):
         return flask.jsonify(message="internal server error"), 500
     
     return flask.jsonify(version)
-        
-    # try:
-    #     os_install_date = data.get('osInstallDate')
-    #     if os_install_date:
-    #         os_install_date = dt.datetime.strptime(os_install_date, '%Y-%m-%d %H:%M:%S')
-            
-
-    #     # verifica se há uma máquina com esse mac
-    #     mac = get_default_mac(data['networkAdapters'])
-    #     if not mac:
-    #         return flask.jsonify(message="a máquina deve conter pelo menos um endereço mac (networkAdapter)"), 400
-
-    #     version = MachineVersionModel.query.filter_by(mac=mac, owner_id=owner.id).first()
-
-    #     if not version:
-    #         version = MachineVersionModel(
-    #             mac=mac,
-    #             owner=owner,
-    #         )
-
-    #         db.session.add(machine)
-
-    #     new_version = MachineExtra(
-    #         os=data['os'],
-    #         title=data['title'],
-    #         os_architecture=data.get('osArchitecture'),
-    #         os_install_date=os_install_date,
-    #         os_version=data.get('osVersion'),
-    #         os_serial_number=data.get('osSerialNumber'),
-    #         organization=data.get('organization'),
-    #         motherboard=data.get('motherboard'),
-    #         motherboard_manufacturer=data.get('motherboardManufacturer'),
-    #         processor=data.get('processor'),
-    #         processor_clock_speed=data.get('processorClockSpeed'),
-    #         machine=machine,
-    #     )
-    #     db.session.add(new_version)
-
-    #     for disk in data.get('disks', []):
-    #         db.session.add(MachineDisk(
-    #             name=disk['name'],
-    #             serialNumber=disk.get('serialNumber'),
-    #             size=disk['size'],
-    #             model=disk.get('model'),
-    #             machine_extra=new_version,
-    #         ))
-
-    #     for adapter in data.get('networkAdapters', []):
-    #         db.session.add(MachineNetworkAdapter(
-    #             name=adapter['name'],
-    #             mac=adapter['mac'],
-    #             machine_extra=new_version,
-    #         ))
-
-    #     for memory in data.get('physicalMemories', []):
-    #         db.session.add(MachinePhysicalMemory(
-    #             name=memory['name'],
-    #             capacity=memory['capacity'],
-    #             speed=memory['speed'],
-    #             machine_extra=new_version,
-    #         ))
-
-    #     for program in data.get('programs', []):
-    #         db.session.add(MachineProgram(
-    #             name=program['name'],
-    #             publisher=program.get('publisher'),
-    #             version=program.get('version'),
-    #             estimatedSize=program['estimatedSize'],
-    #             currentUserOnly=program['currentUserOnly'],
-    #             machine_extra=new_version,
-    #         ))
-        
-    #     db.session.commit()
-    
-    # except KeyError:
-    #     return flask.jsonify(message="'networkAdapters', 'title' e 'os' devem ser fornecidos!"), 400
-    
-    # except ValueError: # esperado do tratamento de os_install_date
-    #     return flask.jsonify(message="'osInstallDate' deve seguir o formato 'AAAA-MM-DD HH:MM:SS'"), 400
-    
-    # except Exception as e:
-    #     db.session.rollback()
-    #     log.error(f'new machine error: {e}')
-    #     return flask.jsonify(message="internal server error"), 500
-
-    # return flask.jsonify(machine.dto(versions=True, owner=True))
 
 @machine_bp.route('/machine/<mac>')
 @token_required(return_user_instance=True)
 def get_machine(user:UserModel, mac:str):
-    version = MachineVersionModel.query.filter_by(mac=mac).first()
+    ownerId = flask.request.args.get('ownerId', user.id)
+    if 'ownerId' in flask.request.args and user.id != ownerId and not user.check_rule(UserModel.RULE_QUERY_OTHER_USERS):
+        return flask.jsonify(message="você não possui autorização para fazer esta requisição"), 401
+
+    version = MachineVersionModel.query\
+        .filter_by(mac=mac, owner_id=ownerId)\
+        .order_by(MachineVersionModel.datetime.desc())\
+        .first()
+    
     if not version:
         return flask.jsonify(message="máquina não encontrada!"), 404
 
-    if user.id != version.owner.id and not user.check_rule(UserModel.RULE_QUERY_OTHER_USERS):
-        return flask.jsonify(message="você não possui autorização para fazer esta requisição"), 401
-    
-    # currentVersion = db.session.query(MachineExtra) \
-    #     .filter(MachineExtra.machine_id == machine.id) \
-    #     .order_by(MachineExtra.config_date.desc()) \
-    #     .first()
-
-    # return flask.jsonify(currentVersion.dto(machine=True, optimized_programs=True))
     return flask.jsonify(version.dto())
 
 @machine_bp.route('/machines')
@@ -223,22 +136,13 @@ def get_machines(user:UserModel, ident:str):
     else:
         owner = user
 
-
-    # for m in owner.machines:
-    #     latest_version = db.session.query(MachineExtra) \
-    #         .filter(MachineExtra.machine_id == m.id) \
-    #         .order_by(MachineExtra.config_date.desc()) \
-    #         .first()
-        
-    #     machines.append(latest_version.dto(machine=True, optimized_programs=True))
-
     # selecionando a ultima versão de cada mac vinculado ao usuario
     stmt = (
-        select(MachineVersionModel)
+        select(MachineVersionModel.mac)
         .distinct(MachineVersionModel.mac)
-        .order_by(MachineVersionModel.datetime.desc())
+        .filter(MachineVersionModel.owner == owner)
     )
-    machines = [ MachineVersionModel.get(o.id, 'id', as_dict=True, dict_ignore={'machine_version_id'}) for o in db.session.execute(stmt).scalars().all() ]
-    
 
-    return flask.jsonify(userId=owner.id, userName=owner.name, machines=machines)
+    macs_user = db.session.execute(stmt).scalars().all()
+    machines = [ MachineVersionModel.get(mac, 'mac', owner.id, as_dict=True, dict_ignore={'machine_version_id', 'owner_id'}) for mac in macs_user ]
+    return flask.jsonify(user_id=owner.id, user_name=owner.name, machines=machines)

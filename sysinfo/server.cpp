@@ -144,7 +144,7 @@ bool sysinfo::ServerAPI::GetUser(user* u, const std::string& cpf_or_id)
         !(json_id = cJSON_GetObjectItem(json, "id")) || !cJSON_IsString(json_id) ||
         !(json_cpf = cJSON_GetObjectItem(json, "cpf")) || !cJSON_IsString(json_cpf) ||
         !(json_name = cJSON_GetObjectItem(json, "name")) || !cJSON_IsString(json_name) ||
-		!(json_rules_flag = cJSON_GetObjectItem(json, "rulesFlag")) || !cJSON_IsNumber(json_rules_flag)
+		!(json_rules_flag = cJSON_GetObjectItem(json, "rules_flag")) || !cJSON_IsNumber(json_rules_flag)
         ) {
         last_error = "it wasn't possible to parse the user data from the server response";
         cJSON_Delete(json);

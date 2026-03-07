@@ -42,7 +42,7 @@ def post_user():
 @user_bp.route('/user')
 @token_required(return_user_instance=True)
 def get_user(user:str):
-    return flask.jsonify(model_to_dict(user, include={'id', 'name', 'cpf'}, include_all=False))
+    return flask.jsonify(model_to_dict(user, include={'id', 'name', 'cpf', 'rules_combinated'}, include_all=False, rename={'rules_combinated': 'rules_flag'}))
 
 @user_bp.route('/user/<ident>')
 @token_required(return_user_instance=True)
