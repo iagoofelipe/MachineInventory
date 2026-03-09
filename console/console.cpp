@@ -49,6 +49,7 @@ bool init_console(const std::wstring_view& command)
 {
     _setmode(_fileno(stdin), _O_WTEXT);    // configura UTF-16 para std::wcin
     _setmode(_fileno(stdout), _O_U16TEXT); // configura UTF-16 para std::wcout
+	std::wcout << std::boolalpha; // configura std::cout para imprimir bool como true/false
 
     machine_data_required = command == L"sysinfo" || command == L"upload";
     json_machine = NULL;
@@ -123,7 +124,41 @@ int command_sysinfo()
         << "Version='" << program.DisplayVersion << "' "
         << "Publisher='" << program.Publisher << "' "
         << "EstimatedSize=" << program.EstimatedSize << " "
-        << "CurrentUserOnly=" << (program.CurrentUserOnly ? "True" : "False") << ")\n";
+        << "CurrentUserOnly=" << program.CurrentUserOnly << ")\n";
+
+    std::wcout << "Groups (" << machine.groups.size() << "):\n";
+    for (const sysinfo::user_group& group : machine.groups)
+        std::wcout
+        << "\tSID='" << group.sid << "'\n"
+        << "\tName='" << group.name << "'\n"
+        << "\tDescription='" << group.description << "'\n"
+        << "\tDomain='" << group.domain << "'\n"
+        << "\tStatus='" << group.status << "'\n"
+        << "\tLocal=" << group.local << "\n\n";
+
+    std::wcout << "User Accounts (" << machine.accounts.size() << "):\n";
+    for (const sysinfo::user_account& account : machine.accounts)
+        std::wcout
+        << "\tSID='" << account.sid << "'\n"
+        << "\tName='" << account.name << "'\n"
+        << "\tFullName='" << account.fullName << "'\n"
+        << "\tDescription='" << account.description << "'\n"
+        << "\tDomain='" << account.domain << "'\n"
+        << "\tStatus='" << account.status << "'\n"
+        << "\tDisabled=" << account.disabled << "\n"
+        << "\tLocal=" << account.local << "\n"
+        << "\tLockout=" << account.lockout << "\n"
+        << "\tPasswordChangeable=" << account.passwordChangeable << "\n"
+        << "\tPasswordExpires=" << account.passwordExpires << "\n"
+        << "\tPasswordRequired=" << account.passwordRequired << "\n\n";
+
+
+    std::wcout << "User Accounts By Group (" << machine.group_members.size() << "):\n";
+    for (const auto& [groupSid, userSids] : machine.group_members) {
+        std::wcout << "\tGroup SID='" << groupSid << "'\n";
+        for (const std::wstring& userSid : userSids)
+            std::wcout << "\t\tUser SID='" << userSid << "'\n";
+    }
 
     return 0;
 }

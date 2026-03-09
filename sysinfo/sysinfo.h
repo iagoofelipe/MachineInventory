@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace sysinfo
 {
@@ -47,6 +48,33 @@ namespace sysinfo
         std::wstring speed;
     };
 
+    struct user_group {
+        std::wstring sid;
+        std::wstring name;
+        std::wstring description;
+        std::wstring domain;
+        std::wstring status;
+        bool local;
+    };
+
+    struct user_account {
+        std::wstring sid;
+        std::wstring name;
+        std::wstring fullName;
+        std::wstring description;
+        std::wstring domain;
+        std::wstring status;
+        bool disabled;
+        bool local;
+        bool lockout;
+        bool passwordChangeable;
+        bool passwordExpires;
+        bool passwordRequired;
+    };
+
+    typedef std::map<std::wstring, std::vector<std::wstring>> user_accounts_by_group;
+    typedef std::map<std::wstring, std::vector<std::wstring>> groups_by_user_account;
+
     struct machine {
         std::wstring osName;
         std::wstring osArchitecture;
@@ -62,6 +90,9 @@ namespace sysinfo
         std::vector<network_adapter> network_adapters;
         std::vector<physical_memory> physical_memories;
         std::vector<program> programs;
+        std::vector<user_group> groups;
+        std::vector<user_account> accounts;
+        user_accounts_by_group group_members;
     };
 
     bool Init();
@@ -75,6 +106,10 @@ namespace sysinfo
     bool GetMotherboard(std::wstring* name, std::wstring* manufacturer);
     bool GetProcessor(std::wstring* name, std::wstring* clock_speed);
     bool GetMachine(machine* out, int flags = DEFAULT);
+    bool GetUserAccounts(std::vector<user_account>* out);
+    bool GetUserAccountGroups(user_accounts_by_group* map_group_key, user_accounts_by_group* map_account_key);
+    bool GetGroups(std::vector<user_group>* out);
 
     cJSON* MachineToJson(const machine* data);
+    bool MachineFromJString(const char* str_data, machine* out);
 }

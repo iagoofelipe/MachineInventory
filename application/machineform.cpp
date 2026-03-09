@@ -40,18 +40,18 @@ void inventory::MachineForm::UpdateTreeSelection(wxTreeItemId id)
 
     list->Freeze();
     list->DeleteAllItems();
+	list->DeleteAllColumns();
 
     const wxString& label = tree->GetItemText(id);
-    if (label == "Resumo do Sistema")
-        setupSummary();
-    else if (label == "Rede")
-        setupNewtwork();
-    else if (label == "Armazenamento")
-        setupDisks();
-    else if (label == wxString::FromUTF8("Memória RAM"))
-        setupMemory();
-    else if (label == "Programas")
-        setupPrograms();
+    const wxString& lbRAM = wxString::FromUTF8("Memória RAM");
+    const wxString& lbAccounts = wxString::FromUTF8("Contas de Usuário");
+
+    if (label == "Resumo do Sistema")       setupSummary();
+    else if (label == "Rede")               setupNewtwork();
+    else if (label == "Armazenamento")      setupDisks();
+    else if (label == lbRAM)                setupMemory();
+    else if (label == "Programas")          setupPrograms();
+    else if (label == lbAccounts)           setupAccounts();
 
     list->Thaw();
 }
@@ -75,10 +75,10 @@ void inventory::MachineForm::setupUI(int border)
     
     wxTreeItemId software = tree->AppendItem(root, "Componentes de Software");
     tree->AppendItem(software, "Programas");
+    tree->AppendItem(software, wxString::FromUTF8("Contas de Usuário"));
 
     list = new wxListCtrl(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_HRULES | wxLC_VRULES);
-    list->InsertColumn(0, "Item", wxLIST_FORMAT_LEFT, 200);
-    list->InsertColumn(1, "Valor", wxLIST_FORMAT_LEFT, 400);
+    
 
     sizer->Add(splitter, 1, wxEXPAND | wxTOP | wxRIGHT | wxLEFT, border);
     sizer->AddSpacer(6);
@@ -103,6 +103,9 @@ void inventory::MachineForm::setupUI(int border)
 
 void inventory::MachineForm::setupSummary()
 {
+    list->InsertColumn(0, "Item", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(1, "Valor", wxLIST_FORMAT_LEFT, 350);
+    
     long i;
     const sysinfo::machine *machine = model->GetMachine();
 
@@ -140,95 +143,131 @@ void inventory::MachineForm::setupSummary()
 
 void inventory::MachineForm::setupNewtwork()
 {
+    list->InsertColumn(0, "Nome", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(1, wxString::FromUTF8("Endereço MAC"), wxLIST_FORMAT_LEFT, 350);
+
     long i;
     const sysinfo::machine *machine = model->GetMachine();
 
     for (size_t j = machine->network_adapters.size(); j > 0; --j) {
         const sysinfo::network_adapter& adapter = machine->network_adapters[j - 1];
 
-        i = list->InsertItem(0, "Mac");
+        i = list->InsertItem(0, adapter.name);
         list->SetItem(i, 1, adapter.mac);
-
-        i = list->InsertItem(0, "Nome");
-        list->SetItem(i, 1, adapter.name);
-
-        if (j != 1)
-            i = list->InsertItem(0, "");
     }
 }
 
 void inventory::MachineForm::setupDisks()
 {
+    list->InsertColumn(0, "Nome", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(1, wxString::FromUTF8("Número de Série"), wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(2, wxString::FromUTF8("Espaço"), wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(3, "Modelo", wxLIST_FORMAT_LEFT, 200);
+
     long i;
     const sysinfo::machine *machine = model->GetMachine();
 
     for (size_t j = machine->disks.size(); j > 0; --j) {
         const sysinfo::disk& disk = machine->disks[j - 1];
 
-        i = list->InsertItem(0, "Model");
-        list->SetItem(i, 1, disk.model);
-
-        i = list->InsertItem(0, wxString::FromUTF8("Espaço"));
-        list->SetItem(i, 1, disk.size);
-
-        i = list->InsertItem(0, wxString::FromUTF8("Número de Série"));
+        i = list->InsertItem(0, disk.name);
         list->SetItem(i, 1, disk.seriaNumber);
-
-        i = list->InsertItem(0, "Nome");
-        list->SetItem(i, 1, disk.name);
-
-        if (j != 1)
-            i = list->InsertItem(0, "");
+        list->SetItem(i, 2, disk.size);
+        list->SetItem(i, 3, disk.model);
     }
 }
 
 void inventory::MachineForm::setupMemory()
 {
+    list->InsertColumn(0, "Nome", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(1, wxString::FromUTF8("Capacidade"), wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(2, "Velocidade", wxLIST_FORMAT_LEFT, 200);
+
     long i;
     const sysinfo::machine *machine = model->GetMachine();
 
     for (size_t j = machine->physical_memories.size(); j > 0; --j) {
         const sysinfo::physical_memory& memory = machine->physical_memories[j - 1];
 
-        i = list->InsertItem(0, "Velocidade");
-        list->SetItem(i, 1, memory.speed);
-
-        i = list->InsertItem(0, "Capacidade");
+        i = list->InsertItem(0, memory.name);
         list->SetItem(i, 1, memory.capacity);
+        list->SetItem(i, 2, memory.speed);
 
-        i = list->InsertItem(0, "Nome");
-        list->SetItem(i, 1, memory.name);
+        //i = list->InsertItem(0, "Velocidade");
+        //list->SetItem(i, 1, memory.speed);
 
-        if (j != 1)
-            i = list->InsertItem(0, "");
+        //i = list->InsertItem(0, "Capacidade");
+        //list->SetItem(i, 1, memory.capacity);
+
+        //i = list->InsertItem(0, "Nome");
+        //list->SetItem(i, 1, memory.name);
+
+        //if (j != 1)
+        //    i = list->InsertItem(0, "");
     }
 }
 
 void inventory::MachineForm::setupPrograms()
 {
+    list->InsertColumn(0, "Nome", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(1, wxString::FromUTF8("Versão"), wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(2, "Provedor", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(3, wxString::FromUTF8("Espaço Estimado"), wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(4, wxString::FromUTF8("Apenas no Usuário Atual"), wxLIST_FORMAT_LEFT, 200);
+
     long i;
     const sysinfo::machine *machine = model->GetMachine();
 
     for (size_t j = machine->programs.size(); j > 0; --j) {
         const sysinfo::program& program = machine->programs[j - 1];
 
-        i = list->InsertItem(0, wxString::FromUTF8("Apenas no Usuário Atual"));
-        list->SetItem(i, 1, program.CurrentUserOnly ? wxString::FromUTF8("Sim") : wxString::FromUTF8("Não"));
-        
-        i = list->InsertItem(0, wxString::FromUTF8("Espaço"));
-        list->SetItem(i, 1, program.EstimatedSize);
-        
-        i = list->InsertItem(0, "Provedor");
-        list->SetItem(i, 1, program.Publisher);
-
-        i = list->InsertItem(0, wxString::FromUTF8("Versão"));
+        i = list->InsertItem(0, program.DisplayName);
         list->SetItem(i, 1, program.DisplayVersion);
+        list->SetItem(i, 2, program.Publisher);
+        list->SetItem(i, 3, program.EstimatedSize);
+        list->SetItem(i, 4, program.CurrentUserOnly ? (wxString)"Sim" : wxString::FromUTF8("Não"));
 
-        i = list->InsertItem(0, "Nome");
-        list->SetItem(i, 1, program.DisplayName);
 
-        if (j != 1)
-            i = list->InsertItem(0, "");
+        //i = list->InsertItem(0, wxString::FromUTF8("Apenas no Usuário Atual"));
+        //list->SetItem(i, 1, program.CurrentUserOnly ? wxString::FromUTF8("Sim") : wxString::FromUTF8("Não"));
+        //
+        //i = list->InsertItem(0, wxString::FromUTF8("Espaço"));
+        //list->SetItem(i, 1, program.EstimatedSize);
+        //
+        //i = list->InsertItem(0, "Provedor");
+        //list->SetItem(i, 1, program.Publisher);
+
+        //i = list->InsertItem(0, wxString::FromUTF8("Versão"));
+        //list->SetItem(i, 1, program.DisplayVersion);
+
+        //i = list->InsertItem(0, "Nome");
+        //list->SetItem(i, 1, program.DisplayName);
+
+        //if (j != 1)
+        //    i = list->InsertItem(0, "");
+    }
+
+    
+}
+
+void inventory::MachineForm::setupAccounts()
+{
+    list->InsertColumn(0, "Nome", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(1, "Nome Completo", wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(2, wxString::FromUTF8("Domínio"), wxLIST_FORMAT_LEFT, 200);
+    list->InsertColumn(3, wxString::FromUTF8("Descrição"), wxLIST_FORMAT_LEFT, 200);
+    //list->InsertColumn(3, "Administrador", wxLIST_FORMAT_LEFT, 200);
+
+    long i;
+    const sysinfo::machine* machine = model->GetMachine();
+
+    for (size_t j = machine->accounts.size(); j > 0; --j) {
+        const sysinfo::user_account& account = machine->accounts[j - 1];
+
+        i = list->InsertItem(0, account.name);
+        list->SetItem(i, 1, account.fullName);
+        list->SetItem(i, 2, account.domain);
+        list->SetItem(i, 3, account.description);
     }
 }
 

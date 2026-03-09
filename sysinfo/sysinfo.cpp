@@ -18,6 +18,12 @@ static const std::vector<LPCWSTR> FIELDS_PHYSICAL_MEMORY{ L"Tag", L"Capacity", L
 static const std::vector<LPCWSTR> FIELDS_PROCESSOR{ L"Name", L"CurrentClockSpeed" };
 static const std::vector<LPCWSTR> FIELDS_OPERATING_SYSTEM{ L"Caption", L"Version", L"InstallDate", L"OSArchitecture", L"SerialNumber", L"Organization" };
 static const std::vector<LPCWSTR> FIELDS_BASE_BOARD{ L"Manufacturer", L"Product" };
+static const std::vector<LPCWSTR> FIELDS_USER_ACCOUNT{
+    L"SID", L"Name", L"FullName", L"Description", L"Domain", L"Status", L"Disabled", L"LocalAccount",
+    L"Lockout", L"PasswordChangeable", L"PasswordExpires", L"PasswordRequired"
+};
+static const std::vector<LPCWSTR> FIELDS_GROUP{ L"SID", L"Name", L"Description", L"Domain", L"Status", L"LocalAccount" };
+static const std::vector<LPCWSTR> FIELDS_GROUP_USER{ L"GroupComponent", L"PartComponent" };
 
 
 static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flags, bool currentUser)
@@ -408,6 +414,147 @@ bool sysinfo::GetProcessor(std::wstring* name, std::wstring* clock_speed)
     return true;
 }
 
+bool sysinfo::GetGroups(std::vector<user_group>* out)
+{
+    std::vector<std::vector<VARIANT>> variants;
+    if (!query_wmi(L"Win32_Group", FIELDS_GROUP, variants))
+        return false;
+
+    for (std::vector<VARIANT>& row : variants) {
+        out->emplace_back(
+            (row[0].vt == VT_BSTR ? row[0].bstrVal : L""),    // sid
+            (row[1].vt == VT_BSTR ? row[1].bstrVal : L""),    // name
+            (row[2].vt == VT_BSTR ? row[2].bstrVal : L""),    // description
+            (row[3].vt == VT_BSTR ? row[3].bstrVal : L""),    // domain
+            (row[4].vt == VT_BSTR ? row[4].bstrVal : L""),    // status
+            (row[5].vt == VT_BOOL ? row[5].boolVal : 0)       // local
+        );
+
+        clear_variants(row);
+    }
+
+    return true;
+}
+
+bool sysinfo::GetUserAccounts(std::vector<user_account>* out)
+{
+    std::vector<std::vector<VARIANT>> variants;
+    if (!query_wmi(L"Win32_UserAccount", FIELDS_USER_ACCOUNT, variants))
+        return false;
+
+    for (std::vector<VARIANT>& row : variants) {
+        out->emplace_back(
+            (row[0].vt == VT_BSTR ? row[0].bstrVal : L""),    // sid
+            (row[1].vt == VT_BSTR ? row[1].bstrVal : L""),    // name
+            (row[2].vt == VT_BSTR ? row[2].bstrVal : L""),    // fullName
+            (row[3].vt == VT_BSTR ? row[3].bstrVal : L""),    // description
+            (row[4].vt == VT_BSTR ? row[4].bstrVal : L""),    // domain
+            (row[5].vt == VT_BSTR ? row[5].bstrVal : L""),    // status
+            (row[6].vt == VT_BOOL ? row[6].boolVal : 0),      // disabled
+            (row[7].vt == VT_BOOL ? row[7].boolVal : 0),      // local
+            (row[8].vt == VT_BOOL ? row[8].boolVal : 0),      // lockout
+            (row[9].vt == VT_BOOL ? row[9].boolVal : 0),      // passwordChangeable
+            (row[10].vt == VT_BOOL ? row[10].boolVal : 0),    // passwordExpires
+            (row[11].vt == VT_BOOL ? row[11].boolVal : 0)     // passwordRequired
+        );
+
+        clear_variants(row);
+    }
+
+    return true;
+}
+
+bool sysinfo::GetUserAccountGroups(user_accounts_by_group* map_group_key, user_accounts_by_group* map_account_key)
+{
+	if (!map_group_key && !map_account_key) {
+        _error = L"At least one of the parameters must be provided";
+        return false;
+    }
+
+    std::vector<std::vector<VARIANT>> variants;
+    if (!query_wmi(L"Win32_GroupUser", FIELDS_GROUP_USER, variants))
+        return false;
+
+    //std::wcout << "GetUserAccountGroups Getting values...\n";
+
+    HRESULT hr;
+    for (std::vector<VARIANT>& row : variants) {
+		if (row[0].vt != VT_BSTR || row[1].vt != VT_BSTR) {
+            clear_variants(row);
+            continue;
+        }
+
+        IWbemClassObject* pObj = NULL;
+
+        // coletando GroupComponent
+        hr = pSvc->GetObject(row[0].bstrVal, 0, NULL, &pObj, NULL);
+		if (!SUCCEEDED(hr)) {
+            //std::wcout << "Error: coletando GroupComponent\n";
+            clear_variants(row);
+            continue;
+        }
+
+		VARIANT vtGroupSid;
+		hr = pObj->Get(L"SID", 0, &vtGroupSid, NULL, NULL);
+        pObj->Release();
+        pObj = NULL;
+
+        if (!SUCCEEDED(hr)) {
+            clear_variants(row);
+            VariantClear(&vtGroupSid);
+            //std::wcout << "Error: GET SID GroupComponent\n";
+            continue;
+        }
+
+        // coletando PartComponent
+        hr = pSvc->GetObject(row[1].bstrVal, 0, NULL, &pObj, NULL);
+        if (!SUCCEEDED(hr)) {
+            clear_variants(row);
+            //std::wcout << "Error: coletando PartComponent\n";
+            continue;
+        }
+
+        VARIANT vtUserSid;
+        hr = pObj->Get(L"SID", 0, &vtUserSid, NULL, NULL);
+        pObj->Release();
+
+        if (!SUCCEEDED(hr)) {
+            clear_variants(row);
+            VariantClear(&vtGroupSid);
+            VariantClear(&vtUserSid);
+            //std::wcout << "Error: GET SID PartComponent\n";
+            continue;
+        }
+
+        std::wstring groupSid = vtGroupSid.bstrVal;
+        std::wstring userSid = vtUserSid.bstrVal;
+        VariantClear(&vtGroupSid);
+        VariantClear(&vtUserSid);
+
+		// User Accounts by Group
+        if (map_group_key) {
+            if (map_group_key->count(groupSid)) {
+                map_group_key->at(groupSid).emplace_back(userSid);
+            }
+            else
+                map_group_key->emplace(groupSid, std::vector<std::wstring>()).first->second.emplace_back(userSid);
+        }
+
+		// Groups By User Account
+        if (map_account_key) {
+            if (map_group_key->count(userSid)) {
+                map_group_key->at(userSid).emplace_back(groupSid);
+            }
+            else
+                map_group_key->emplace(userSid, std::vector<std::wstring>()).first->second.emplace_back(groupSid);
+        }
+
+        clear_variants(row);
+    }
+
+    return true;
+}
+
 bool sysinfo::GetMachine(machine* out, int flags)
 {
     // OS
@@ -445,18 +592,24 @@ bool sysinfo::GetMachine(machine* out, int flags)
         && GetDisks(&out->disks)
         && GetNetworkAdapters(&out->network_adapters, flags)
         && GetPhysicalMemories(&out->physical_memories)
-        && GetPrograms(&out->programs, flags);
+        && GetPrograms(&out->programs, flags)
+        && GetGroups(&out->groups)
+        && GetUserAccounts(&out->accounts)
+        && GetUserAccountGroups(&out->group_members, nullptr);
 }
 
 cJSON* sysinfo::MachineToJson(const machine* data)
 {
     cJSON
-        * json = NULL,
-        * jobject = NULL,
-        * jarray_disks = NULL,
-        * jarray_network_adapters = NULL,
-        * jarray_physical_memories = NULL,
-        * jarray_programs = NULL;
+        *json = NULL,
+        *jobject = NULL,
+        *jarray_disks = NULL,
+        *jarray_network_adapters = NULL,
+        *jarray_physical_memories = NULL,
+        *jarray_programs = NULL,
+        *jarray_accounts = NULL,
+        *jarray_groups = NULL,
+        *jarray_group_members = NULL;
 
     // gerando JSON do objeto inicial
     if (!(json = cJSON_CreateObject())) {
@@ -478,7 +631,10 @@ cJSON* sysinfo::MachineToJson(const machine* data)
         !(jarray_disks = cJSON_AddArrayToObject(json, "disks")) ||
         !(jarray_network_adapters = cJSON_AddArrayToObject(json, "networkAdapters")) ||
         !(jarray_physical_memories = cJSON_AddArrayToObject(json, "physicalMemories")) ||
-        !(jarray_programs = cJSON_AddArrayToObject(json, "programs"))
+        !(jarray_programs = cJSON_AddArrayToObject(json, "programs")) ||
+        !(jarray_accounts = cJSON_AddArrayToObject(json, "accounts")) ||
+        !(jarray_groups = cJSON_AddArrayToObject(json, "groups")) ||
+        !(jarray_group_members = cJSON_AddArrayToObject(json, "groupMembers"))
         ) {
         _error = L"it was not possible to add all JSON properties";
         cJSON_Delete(json);
@@ -547,5 +703,70 @@ cJSON* sysinfo::MachineToJson(const machine* data)
         }
     }
 
+	// adicionando contas de usuário
+	for (const user_account& account : data->accounts) {
+        if (
+            !(jobject = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_accounts, jobject) ||
+            !cJSON_AddStringToObject(jobject, "sid", ToString(account.sid).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "name", ToString(account.name).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "fullName", ToString(account.fullName).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "description", ToString(account.description).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "domain", ToString(account.domain).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "status", ToString(account.status).c_str()) ||
+            !cJSON_AddBoolToObject(jobject, "disabled", account.disabled) ||
+            !cJSON_AddBoolToObject(jobject, "local", account.local) ||
+            !cJSON_AddBoolToObject(jobject, "lockout", account.lockout) ||
+            !cJSON_AddBoolToObject(jobject, "passwordChangeable", account.passwordChangeable) ||
+            !cJSON_AddBoolToObject(jobject, "passwordExpires", account.passwordExpires) ||
+            !cJSON_AddBoolToObject(jobject, "passwordRequired", account.passwordRequired)
+            ) {
+            _error = L"it wasn't possible to add all JSON properties";
+            cJSON_Delete(json);
+            return NULL;
+        }
+    }
+
+    // adicionando grupos
+	for (const user_group& group : data->groups) {
+        if (
+            !(jobject = cJSON_CreateObject()) ||
+            !cJSON_AddItemToArray(jarray_groups, jobject) ||
+            !cJSON_AddStringToObject(jobject, "sid", ToString(group.sid).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "name", ToString(group.name).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "description", ToString(group.description).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "domain", ToString(group.domain).c_str()) ||
+            !cJSON_AddStringToObject(jobject, "status", ToString(group.status).c_str()) ||
+            !cJSON_AddBoolToObject(jobject, "local", group.local)
+            ) {
+            _error = L"it wasn't possible to add all JSON properties";
+            cJSON_Delete(json);
+            return NULL;
+        }
+    }
+
+	// adicionando membros de grupos
+	for (const auto& pair : data->group_members) {
+        const std::wstring& groupSid = pair.first;
+        const std::vector<std::wstring>& userSids = pair.second;
+        for (const std::wstring& userSid : userSids) {
+            if (
+                !(jobject = cJSON_CreateObject()) ||
+                !cJSON_AddItemToArray(jarray_group_members, jobject) ||
+                !cJSON_AddStringToObject(jobject, "groupSid", ToString(groupSid).c_str()) ||
+                !cJSON_AddStringToObject(jobject, "accountSid", ToString(userSid).c_str())
+                ) {
+                _error = L"it wasn't possible to add all JSON properties";
+                cJSON_Delete(json);
+                return NULL;
+            }
+        }
+    }
+
     return json;
+}
+
+bool sysinfo::MachineFromJString(const char* str_data, machine* out)
+{
+    return false;
 }

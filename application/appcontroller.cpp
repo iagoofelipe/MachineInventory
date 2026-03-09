@@ -59,8 +59,14 @@ void inventory::AppController::On_AuthForm_Machine(wxCommandEvent& event)
 
 void inventory::AppController::On_AppModel_Init(wxCommandEvent& event)
 {
-    if (event.GetInt())
+    if (event.GetInt()) {
+        if (model->GetServer()->NoConnectionInLastRequest()) {
+            view->SetUI(ID_MACHINE_FORM);
+            return;
+        }
+
         view->SetUI(model->GetLoggedUser() ? ID_HOME_FORM : ID_AUTH_FORM);
+    }
 }
 
 void inventory::AppController::On_AppModel_Login(wxCommandEvent& event)

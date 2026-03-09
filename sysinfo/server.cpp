@@ -15,6 +15,7 @@ static size_t write_callback(void* contents, size_t size, size_t nmemb, std::str
 
 sysinfo::ServerAPI::ServerAPI()
     :curl(NULL)
+	, conn_refused_last_request(false)
 {
     char* buffer = std::getenv("TEMP");
 	FILE_TOKEN = (buffer ? std::string(buffer) : ".") + "\\sysinfo_token.txt";
@@ -47,6 +48,14 @@ bool sysinfo::ServerAPI::Initialize()
 }
 
 const char* sysinfo::ServerAPI::GetLastError() { return last_error.c_str(); }
+
+bool sysinfo::ServerAPI::TestConnection()
+{
+	sysinfo::response r;
+	getRequest(BASE_URL + "/testConnection", &r);
+	return r.status_code == 200;
+}
+
 bool sysinfo::ServerAPI::HasToken() { return !token.empty(); }
 
 bool sysinfo::ServerAPI::ValidateToken()
@@ -216,6 +225,11 @@ bool sysinfo::ServerAPI::UploadMachine(const machine* data, const char* ownerCpf
     return success;
 }
 
+bool sysinfo::ServerAPI::GetMachine(const char* mac, machine* m)
+{
+    return false;
+}
+
 bool sysinfo::ServerAPI::UploadMachine(cJSON* json, const char* ownerCpf, const char* machineTitle, std::string* id)
 {
     if (
@@ -261,12 +275,14 @@ bool sysinfo::ServerAPI::getRequest(const std::string& url, response* r)
 
     if (res == CURLE_OK)
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &r->status_code);
-    else
+    else {
         last_error = curl_easy_strerror(res);
+    }
 
     curl_easy_reset(curl);
+    conn_refused_last_request = (res != CURLE_OK);
 
-    return res == CURLE_OK;
+    return !conn_refused_last_request;
 }
 
 bool sysinfo::ServerAPI::postRequest(const std::string& url, const std::string& data, response* r)
@@ -292,8 +308,9 @@ bool sysinfo::ServerAPI::postRequest(const std::string& url, const std::string& 
         last_error = curl_easy_strerror(res);
 
     curl_easy_reset(curl);
+    conn_refused_last_request = (res != CURLE_OK);
 
-    return res == CURLE_OK;
+    return !conn_refused_last_request;
 }
 
 bool sysinfo::ServerAPI::getSfieldFromJstring(const std::string& content, const std::string& field, std::string* out)

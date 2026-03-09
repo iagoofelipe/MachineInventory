@@ -37,6 +37,7 @@ namespace inventory
         void setupDisks();
         void setupMemory();
         void setupPrograms();
+        void setupAccounts();
 
         // void OnTreeSelChange(wxTreeEvent& event);
         void OnBtnSync(wxCommandEvent& event);

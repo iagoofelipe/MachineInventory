@@ -19,6 +19,9 @@ class MachineVersionData:
     adapters: list['NetworkAdapterModel']
     programs: list['ProgramModel']
     memories: list['PhysicalMemoryModel']
+    accounts: list['MachineAccountModel']
+    groups: list['MachineGroupModel']
+    group_members: list['MachineGroupMemberModel']
 
 class MachineVersionModel(db.Model):
     __tablename__ = 'machine_version'
@@ -33,6 +36,9 @@ class MachineVersionModel(db.Model):
     memories = db.relationship('PhysicalMemoryModel', backref='machine_version', lazy=True)
     programs = db.relationship('ProgramModel', backref='machine_version', lazy=True)
     machines = db.relationship('MachineModel', backref='machine_version', lazy=True)
+    accounts = db.relationship('MachineAccountModel', backref='machine_version', lazy=True)
+    groups = db.relationship('MachineGroupModel', backref='machine_version', lazy=True)
+    group_members = db.relationship('MachineGroupMemberModel', backref='machine_version', lazy=True)
     removed = db.relationship('MachineRemoveModel', backref='machine_version', lazy=True)
 
     def __repr__(self):
@@ -70,7 +76,7 @@ class MachineVersionModel(db.Model):
 
         # gerar estrutura, desconsiderando removidos
         v = MachineVersionData(
-            version=version, machine=None, programs=None, disks=None, adapters=None, memories=None
+            version=version, machine=None, programs=None, disks=None, adapters=None, memories=None, groups=None, accounts=None, group_members=None
         )
         d = model_to_dict(version, dict_ignore) if as_dict else None
         props = (
@@ -79,6 +85,9 @@ class MachineVersionModel(db.Model):
             ('disks', DiskModel, TablesRemove.DISK),
             ('adapters', NetworkAdapterModel, TablesRemove.NETWORK_ADAPTER),
             ('memories', PhysicalMemoryModel, TablesRemove.PHYSICAL_MEMORY),
+            ('accounts', MachineAccountModel, TablesRemove.ACCOUNT),
+            ('groups', MachineGroupModel, TablesRemove.GROUP),
+            ('group_members', MachineGroupMemberModel, TablesRemove.GROUP_MEMBER),
         )
 
         for key, model, to_ignore_key in props:
@@ -101,7 +110,7 @@ class MachineVersionModel(db.Model):
         return d if as_dict else v
 
     @classmethod
-    def new(cls, data:MachineVersionData, return_type:Literal['str', 'dataclass', 'dict']='dataclass', dict_ignore:set[str]=None) -> MachineVersionData | str | dict:
+    def new(cls, data:MachineVersionData, group_members:list[dict], return_type:Literal['str', 'dataclass', 'dict']='dataclass', dict_ignore:set[str]=None) -> MachineVersionData | str | dict:
         latest_version = cls.get(data.version.mac, 'mac', data.version.owner_id)
         new_version = cls(id=str(uuid4()), mac=data.version.mac, owner_id=data.version.owner_id)
         
@@ -113,27 +122,81 @@ class MachineVersionModel(db.Model):
             ('disks', TablesRemove.DISK),
             ('adapters', TablesRemove.NETWORK_ADAPTER),
             ('memories', TablesRemove.PHYSICAL_MEMORY),
+            ('accounts', TablesRemove.ACCOUNT),
+            ('groups', TablesRemove.GROUP),
+            ('group_members', TablesRemove.GROUP_MEMBER), # deve estar obrigatoriamente após accounts e groups
         )
+        group_ids_by_sid = {}
+        account_ids_by_sid = {}
 
         # adicionando dados extras
         for field_name, _ in props:
             if field_name == 'machine':
                 data.machine.machine_version_id = new_version.id
                 data.machine.id = str(uuid4())
+            
+            elif field_name == 'group_members':
+                continue # gerado após a definição dos ids de groups e accounts
+
             else:
                 for o in getattr(data, field_name):
                     o.machine_version_id = new_version.id
                     o.id = str(uuid4())
 
+                    if field_name == 'groups':
+                        group_ids_by_sid[o.sid] = o.id
+                    elif field_name == 'accounts':
+                        account_ids_by_sid[o.sid] = o.id
+
+        
+        # criando dados de group_members
+        data.group_members = [
+            MachineGroupMemberModel(
+                id=str(uuid4()),
+                machine_account_id=account_ids_by_sid[o['accountSid']],
+                machine_group_id=group_ids_by_sid[o['groupSid']],
+                machine_version_id=new_version.id,
+            ) for o in group_members if o['accountSid'] in account_ids_by_sid and o['groupSid'] in group_ids_by_sid
+        ]
+
         if latest_version:
             new_version.previous_id = latest_version.version.id
+            account_ids_to_remove = []
+            group_ids_to_remove = []
+            account_ids_to_add = []
+            group_ids_to_add = []
 
             for field_name, table_to_remove in props:
                 if field_name == 'machine':
-                    old, new = [getattr(latest_version, field_name)], [getattr(data, field_name)]
+                    models_to_remove, models_to_add = cls._from_to([getattr(latest_version, field_name)], [getattr(data, field_name)])
+                
+                elif field_name == 'group_members':
+                    # necessária a verificação de alteração em accounts e groups
+                    old, new = getattr(latest_version, field_name), getattr(data, field_name)
+                    models_to_remove, models_to_add = [], []
+
+                    for o in old:
+                        if o.machine_group_id in group_ids_to_remove or o.machine_account_id in account_ids_to_remove:
+                            models_to_remove.append(o)
+
+                    for o in new:
+                        #in_old = MachineGroupMemberModel.query.filter_by(machine_group_id=o.machine_group_id, machine_account_id=o.machine_account_id, machine_version_id=latest_version.version.id).first()
+                        #TODO: verificar se existe uma relação entre a conta e o grupo na versão anterior
+                        in_old = True
+                        if not in_old or o.machine_group_id in group_ids_to_add or o.machine_account_id in account_ids_to_add:
+                            models_to_add.append(o)
+
                 else:
                     old, new = getattr(latest_version, field_name), getattr(data, field_name)
-                models_to_remove, models_to_add = cls._from_to(old, new)
+                    models_to_remove, models_to_add = cls._from_to(old, new)
+
+                if field_name == 'accounts':
+                    account_ids_to_remove.extend([o.id for o in models_to_remove])
+                    account_ids_to_add.extend([o.id for o in models_to_add])
+
+                elif field_name == 'groups':
+                    group_ids_to_remove.extend([o.id for o in models_to_remove])
+                    group_ids_to_add.extend([o.id for o in models_to_add])
 
                 # inserindo valores adicionados
                 for model in models_to_add:
@@ -154,7 +217,7 @@ class MachineVersionModel(db.Model):
 
         if return_type == 'str':
              return new_version.id
-        return cls.get(new_version.id, 'id', as_dict=return_type == 'dict')
+        return cls.get(new_version.id, 'id', as_dict=return_type == 'dict', dict_ignore=dict_ignore)
 
     @staticmethod
     def _from_to(models1:Iterable[_T1], models2:Iterable[_T2]) -> tuple[list[_T1], list[_T2]]:
@@ -177,6 +240,9 @@ class MachineVersionModel(db.Model):
         ids_to_remove = list(map(models_by_tuple.pop, to_remove))
         ids_to_add = list(map(models_by_tuple.pop, to_add))
 
+        # if to_remove:
+        #     print(models1, models2, set_d1, set_d2, to_remove, to_add, sep='\n')
+
         return ids_to_remove, ids_to_add
 
         
@@ -186,6 +252,9 @@ class TablesRemove(Enum):
     PHYSICAL_MEMORY = auto()
     PROGRAM = auto()
     MACHINE = auto()
+    ACCOUNT = auto()
+    GROUP = auto()
+    GROUP_MEMBER = auto()
 
 class MachineRemoveModel(db.Model):
     __tablename__ = 'machine_remove'
@@ -262,161 +331,43 @@ class MachineModel(db.Model):
     def __repr__(self):
         return f'<MachineModel id="{self.id}">'
 
-# class Machine(db.Model):
-#     id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
-#     mac:str = db.Column(db.String(100), nullable=False)
-#     owner_id:int = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     versions = db.relationship('MachineExtra', backref='machine', lazy=True)
+class MachineAccountModel(db.Model):
+    __tablename__ = 'machine_account'
+    id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
+    sid:str = db.Column(db.String(100), nullable=False)
+    name:str = db.Column(db.String(100), nullable=False)
+    full_name:str = db.Column(db.String(100))
+    description:str = db.Column(db.String(100))
+    domain:str = db.Column(db.String(100))
+    status:str = db.Column(db.String(100))
+    disabled:bool = db.Column(db.Boolean)
+    local:bool = db.Column(db.Boolean)
+    lockout:bool = db.Column(db.Boolean)
+    password_changeable:bool = db.Column(db.Boolean)
+    password_expires:bool = db.Column(db.Boolean)
+    password_required:bool = db.Column(db.Boolean)
+    machine_version_id:str = db.Column(db.String(50), db.ForeignKey('machine_version.id'), nullable=False)
 
-#     def __repr__(self):
-#         return f"<Machine id='{self.id}'>"
+    def __repr__(self):
+        return f'<MachineAccountModel id="{self.id}">'
 
-#     def dto(self, versions=False, owner=False):
-#         d = {
-#             'id': self.id,
-#             'mac': self.mac,
-#         }
+class MachineGroupModel(db.Model):
+    __tablename__ = 'machine_group'
+    id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
+    sid:str = db.Column(db.String(100), nullable=False)
+    name:str = db.Column(db.String(100), nullable=False)
+    description:str = db.Column(db.String(100))
+    domain:str = db.Column(db.String(100))
+    status:str = db.Column(db.String(100))
+    local:bool = db.Column(db.Boolean, nullable=False)
+    machine_version_id:str = db.Column(db.String(50), db.ForeignKey('machine_version.id'), nullable=False)
 
-#         if owner:
-#             d['ownerId'] = self.owner.id
-#             d['ownerName'] = self.owner.name
+class MachineGroupMemberModel(db.Model):
+    __tablename__ = 'machine_group_member'
+    id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
+    machine_group_id:str = db.Column(db.String(50), db.ForeignKey('machine_group.id'), nullable=False)
+    machine_account_id:str = db.Column(db.String(50), db.ForeignKey('machine_account.id'), nullable=False)
+    machine_version_id:str = db.Column(db.String(50), db.ForeignKey('machine_version.id'), nullable=False)
 
-#         if versions:
-#             d['versions'] = [ v.dto() for v in self.versions ]
-
-#         return d
-
-# class MachineExtra(db.Model):
-#     id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
-#     config_date:dt.datetime = db.Column(db.DateTime, default=dt.datetime.now, nullable=False)
-#     os:str = db.Column(db.String(100), nullable=False)
-#     title:str = db.Column(db.String(100), nullable=False)
-#     os_architecture:str = db.Column(db.String(100))
-#     os_install_date:dt.datetime = db.Column(db.DateTime)
-#     os_version:str = db.Column(db.String(100))
-#     os_serial_number:str = db.Column(db.String(100))
-#     organization:str = db.Column(db.String(100))
-#     motherboard:str = db.Column(db.String(100))
-#     motherboard_manufacturer:str = db.Column(db.String(100))
-#     processor:str = db.Column(db.String(100))
-#     processor_clock_speed:int = db.Column(db.Integer)
-#     machine_id:int = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=False)
-#     disks = db.relationship('MachineDisk', backref='machine_extra', lazy=True)
-#     networkAdapters = db.relationship('MachineNetworkAdapter', backref='machine_extra', lazy=True)
-#     physicalMemories = db.relationship('MachinePhysicalMemory', backref='machine_extra', lazy=True)
-#     programs = db.relationship('MachineProgram', backref='machine_extra', lazy=True)
-
-#     def __repr__(self):
-#         return f"<MachineExtra id='{self.id}' config_date='{self.config_date}'>"
-
-#     def dto(self, machine=False, optimized_programs=False):
-#         d = {
-#             'id': self.id,
-#             'configDate': self.config_date.strftime('%Y-%m-%d %H:%M:%S'),
-#             'os': self.os,
-#             'title': self.title,
-#             'osArchitecture': self.os_architecture,
-#             'osInstallDate': self.os_install_date.strftime('%Y-%m-%d %H:%M:%S'),
-#             'osVersion': self.os_version,
-#             'osSerialNumber': self.os_serial_number,
-#             'organization': self.organization,
-#             'motherboard': self.motherboard,
-#             'motherboardManufacturer': self.motherboard_manufacturer,
-#             'processor': self.processor,
-#             'processorClockSpeed': self.processor_clock_speed,
-#             'disks': [ x.dto() for x in self.disks ],
-#             'networkAdapters': [ x.dto() for x in self.networkAdapters ],
-#             'physicalMemories': [ x.dto() for x in self.physicalMemories ],
-#             'programs': dict(columns=MachineProgram.COLUMNS, data=[ x.dto(as_list=True) for x in self.programs ]) if optimized_programs else [ x.dto() for x in self.programs ],
-#         }
-
-#         if machine:
-#             _d = self.machine.dto()
-#             _d.update(d)
-#             d = _d
-        
-#         return d
-    
-# class MachineDisk(db.Model):
-#     id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
-#     name:str = db.Column(db.String(100), nullable=False)
-#     serialNumber:str = db.Column(db.String(100))
-#     size:int = db.Column(db.Integer, nullable=False, default=0)
-#     model:str = db.Column(db.String(100))
-#     machine_extra_id:int = db.Column(db.Integer, db.ForeignKey('machine_extra.id'), nullable=False)
-
-#     def __repr__(self):
-#         return f"<MachineDisk id='{self.id}'>"
-
-#     def dto(self, machineVersionId=False):
-#         d = {
-#             'id': self.id,
-#             'name': self.name,
-#             'serialNumber': self.serialNumber,
-#             'model': self.model,
-#         }
-    
-#         if machineVersionId:
-#             d['machineVersionId'] = self.machine_extra_id
-        
-#         return d
-    
-# class MachineNetworkAdapter(db.Model):
-#     id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
-#     name:str = db.Column(db.String(100), nullable=False)
-#     mac:str = db.Column(db.String(100), nullable=False)
-#     machine_extra_id:int = db.Column(db.Integer, db.ForeignKey('machine_extra.id'), nullable=False)
-
-#     def dto(self, machineVersionId=False):
-#         d = {
-#             'id': self.id,
-#             'name': self.name,
-#             'mac': self.mac,
-#         }
-    
-#         if machineVersionId:
-#             d['machineVersionId'] = self.machine_extra_id
-        
-#         return d
-    
-# class MachinePhysicalMemory(db.Model):
-#     id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
-#     name:str = db.Column(db.String(100), nullable=False)
-#     capacity:int = db.Column(db.Integer, nullable=False)
-#     speed:int = db.Column(db.Integer, nullable=False)
-#     machine_extra_id:int = db.Column(db.Integer, db.ForeignKey('machine_extra.id'), nullable=False)
-
-#     def dto(self, machineVersionId=False):
-#         d = {
-#             'id': self.id,
-#             'name': self.name,
-#             'capacity': self.capacity,
-#             'speed': self.speed,
-#         }
-    
-#         if machineVersionId:
-#             d['machineVersionId'] = self.machine_extra_id
-        
-#         return d
-    
-# class MachineProgram(db.Model):
-#     COLUMNS = ['id', 'name', 'publisher', 'version', 'estimatedSize', 'currentUserOnly']
-
-#     id:str = db.Column(db.String(50), primary_key=True, default=lambda: str(uuid4()))
-#     name:str = db.Column(db.String(100), nullable=False)
-#     publisher:str = db.Column(db.String(100))
-#     version:str = db.Column(db.String(100))
-#     estimatedSize:int = db.Column(db.Integer, nullable=False, default=0)
-#     currentUserOnly:bool = db.Column(db.Boolean, nullable=False)
-#     machine_extra_id:int = db.Column(db.Integer, db.ForeignKey('machine_extra.id'), nullable=False)
-
-#     def dto(self, machineVersionId=False, as_list=False):
-#         d = [ getattr(self, col) for col in self.COLUMNS ] if as_list else { col: getattr(self, col) for col in self.COLUMNS }
-
-#         if machineVersionId:
-#             if as_list:
-#                 d.append(self.machine_extra_id)
-#             else:
-#                 d['machineVersionId'] = self.machine_extra_id
-        
-#         return d
+    def __repr__(self):
+        return f'<MachineGroupMemberModel id="{self.id}">'

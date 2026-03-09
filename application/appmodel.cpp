@@ -10,6 +10,8 @@ wxDEFINE_EVENT(EVT_APPMODEL_MACHINE, wxCommandEvent);       // Finalização do 
 wxDEFINE_EVENT(EVT_APPMODEL_QUERY_OWNER, wxCommandEvent);   // Finalização do processo de consulta de proprietário
 wxDEFINE_EVENT(EVT_APPMODEL_CREATE_USER, wxCommandEvent);   // Finalização do processo de criação de usuário
 wxDEFINE_EVENT(EVT_APPMODEL_SERVER, wxCommandEvent);        // Finalização do processo de envio dos dados da máquina para o servidor
+wxDEFINE_EVENT(EVT_APPMODEL_SERVER_CONN, wxCommandEvent);   // Conexão estabelecida com o servidor
+wxDEFINE_EVENT(EVT_APPMODEL_SERVER_LOST, wxCommandEvent);   // Conexão perdida com o servidor
 
 inventory::AppModel::AppModel()
     : wxEvtHandler()
@@ -53,8 +55,14 @@ void inventory::AppModel::Initialize()
         queueMessage(wxString::FromUTF8("coletando dados do usuário..."));
         isLogged = false;
         sysinfo::user u;
-        if (server.HasToken() && (isLogged = server.GetUser(&u))) {
-            owner = loggedUser = u;
+        if (server.HasToken()) { // garante que pelo menos uma requisição será feita ao servidor
+            if (isLogged = server.GetUser(&u)) {
+                owner = loggedUser = u;
+
+            }
+        }
+        else {
+            server.TestConnection();
         }
 
         queueInit(1);

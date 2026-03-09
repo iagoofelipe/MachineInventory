@@ -53,7 +53,9 @@ def post_machine(logged_user:UserModel):
             return flask.jsonify(message="a máquina deve conter pelo menos um endereço mac (networkAdapter)"), 400
         
         version = MachineVersionModel.new(
+            group_members=data.get('groupMembers', []),
             return_type='dict',
+            dict_ignore={'machine_version_id'},
             data=MachineVersionData(
             version=MachineVersionModel(
                 mac=mac,
@@ -80,13 +82,40 @@ def post_machine(logged_user:UserModel):
                     name=o['name'], publisher=o.get('publisher'), version=o.get('version'),
                     estimated_size=o['estimatedSize'], current_user_only=o['currentUserOnly']
                 ) for o in data.get('programs', [])
-            ]
+            ],
+            accounts=[
+                MachineAccountModel(
+                    sid=o['sid'],
+                    name=o['name'],
+                    full_name=o['fullName'],
+                    description=o['description'],
+                    domain=o['domain'],
+                    status=o['status'],
+                    disabled=o['disabled'],
+                    local=o['local'],
+                    lockout=o['lockout'],
+                    password_changeable=o['passwordChangeable'],
+                    password_expires=o['passwordExpires'],
+                    password_required=o['passwordRequired'],
+                ) for o in data.get('accounts', [])
+            ],
+            groups=[
+                MachineGroupModel(
+                    sid=o['sid'],
+                    name=o['name'],
+                    description=o['description'],
+                    domain=o['domain'],
+                    status=o['status'],
+                    local=o['local'],
+                ) for o in data.get('groups', [])
+            ],
+            group_members=None,
         ))
 
         db.session.commit()
 
-    except KeyError:
-        return flask.jsonify(message="'networkAdapters', 'title' e 'os' devem ser fornecidos!"), 400
+    except KeyError as e:
+        return flask.jsonify(message=f"a chave {e} deve ser fornecida!"), 400
     
     except ValueError: # esperado do tratamento de os_install_date
         return flask.jsonify(message="'osInstallDate' deve seguir o formato 'AAAA-MM-DD HH:MM:SS'"), 400

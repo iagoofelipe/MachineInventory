@@ -12,6 +12,8 @@ wxDECLARE_EVENT(EVT_APPMODEL_MACHINE, wxCommandEvent);       // Finalização do
 wxDECLARE_EVENT(EVT_APPMODEL_QUERY_OWNER, wxCommandEvent);   // Finalização do processo de consulta de proprietário
 wxDECLARE_EVENT(EVT_APPMODEL_CREATE_USER, wxCommandEvent);   // Finalização do processo de criação de usuário
 wxDECLARE_EVENT(EVT_APPMODEL_SERVER, wxCommandEvent);        // Finalização do processo de envio dos dados da máquina para o servidor
+wxDECLARE_EVENT(EVT_APPMODEL_SERVER_CONN, wxCommandEvent);   // Conexão estabelecida com o servidor
+wxDECLARE_EVENT(EVT_APPMODEL_SERVER_LOST, wxCommandEvent);   // Conexão perdida com o servidor
 
 namespace inventory
 {
@@ -58,6 +60,7 @@ namespace inventory
         void Cleanup();
         
         const wxString& GetLastError() const { return lastError; }
+		const sysinfo::ServerAPI* GetServer() { return &server; }
         const user* GetLoggedUser() { return isLogged? &loggedUser : nullptr; }
         const user* GetOwner() { return isLogged? &owner : nullptr; }
         const sysinfo::machine* GetMachine() { return &extraction.data; }
@@ -67,6 +70,7 @@ namespace inventory
         void SetExtractionTitle(const wxString& title) { extraction.title = title; }
         void UpdateExtraction();
 		void SendExtractionToServer();
+        const wxString& GetPreviousExtractionTitle() const { return prevExtractionTitle; }
         
         // User Methods
         void Auth(const wxString& cpf, const wxString& password);
@@ -78,6 +82,7 @@ namespace inventory
 
     private:
         wxString lastError;
+        wxString prevExtractionTitle;
         sysinfo::ServerAPI server;
         machine_extraction extraction;
         user

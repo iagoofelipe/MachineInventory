@@ -12,6 +12,7 @@ from models.user import UserModel, ADMIN_RULES
 from routes.machine import machine_bp
 from routes.user import user_bp
 from routes.auth import auth_bp
+from routes.root import root_bp
 
 class Server:
     def __init__(self, setup=False):
@@ -30,7 +31,6 @@ class Server:
     def command_runserver(self):
         app = self.__setupApp()
         app.run(host='0.0.0.0', port=443, debug=True)
-
         
     def command_generatecfg(self):
         self.generate_secret_key()
@@ -121,6 +121,7 @@ class Server:
         app.register_blueprint(machine_bp)
         app.register_blueprint(user_bp)
         app.register_blueprint(auth_bp)
+        app.register_blueprint(root_bp)
 
         db.init_app(app)
 

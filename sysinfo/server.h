@@ -35,6 +35,9 @@ namespace sysinfo
 
 		bool Initialize();
 		const char* GetLastError();
+		bool NoConnectionInLastRequest() const { return conn_refused_last_request; }
+		bool TestConnection();
+
 		bool HasToken();
 		bool ValidateToken();
 		void ClearToken();
@@ -44,6 +47,7 @@ namespace sysinfo
 		bool CreateNewUser(const std::string& cpf, const std::string& name, const std::string& password, std::string* id = nullptr);
 		bool UploadMachine(cJSON* json, const char* ownerCpf, const char* machineTitle, std::string* id = nullptr);
 		bool UploadMachine(const machine* data, const char* ownerCpf, const char* machineTitle, std::string* id = nullptr);
+		bool GetMachine(const char* mac, machine* m);
 
 	private:
 		static const std::string BASE_URL;
@@ -52,6 +56,7 @@ namespace sysinfo
 		std::string token;
 		std::string last_error;
 		CURL* curl;
+		bool conn_refused_last_request;
 
 		bool getRequest(const std::string& url, response* r);
 		bool postRequest(const std::string& url, const std::string& data, response* r);
