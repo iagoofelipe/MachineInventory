@@ -44,7 +44,7 @@ void inventory::MachineForm::UpdateTreeSelection(wxTreeItemId id)
 
     const wxString& label = tree->GetItemText(id);
     const wxString& lbRAM = wxString::FromUTF8("Memória RAM");
-    const wxString& lbAccounts = wxString::FromUTF8("Contas de Usuário");
+    const wxString& lbAccounts = wxString::FromUTF8("Usuários");
 
     if (label == "Resumo do Sistema")       setupSummary();
     else if (label == "Rede")               setupNewtwork();
@@ -75,7 +75,7 @@ void inventory::MachineForm::setupUI(int border)
     
     wxTreeItemId software = tree->AppendItem(root, "Componentes de Software");
     tree->AppendItem(software, "Programas");
-    tree->AppendItem(software, wxString::FromUTF8("Contas de Usuário"));
+    tree->AppendItem(software, wxString::FromUTF8("Usuários"));
 
     list = new wxListCtrl(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_HRULES | wxLC_VRULES);
     
@@ -192,18 +192,6 @@ void inventory::MachineForm::setupMemory()
         i = list->InsertItem(0, memory.name);
         list->SetItem(i, 1, memory.capacity);
         list->SetItem(i, 2, memory.speed);
-
-        //i = list->InsertItem(0, "Velocidade");
-        //list->SetItem(i, 1, memory.speed);
-
-        //i = list->InsertItem(0, "Capacidade");
-        //list->SetItem(i, 1, memory.capacity);
-
-        //i = list->InsertItem(0, "Nome");
-        //list->SetItem(i, 1, memory.name);
-
-        //if (j != 1)
-        //    i = list->InsertItem(0, "");
     }
 }
 
@@ -226,28 +214,7 @@ void inventory::MachineForm::setupPrograms()
         list->SetItem(i, 2, program.Publisher);
         list->SetItem(i, 3, program.EstimatedSize);
         list->SetItem(i, 4, program.CurrentUserOnly ? (wxString)"Sim" : wxString::FromUTF8("Não"));
-
-
-        //i = list->InsertItem(0, wxString::FromUTF8("Apenas no Usuário Atual"));
-        //list->SetItem(i, 1, program.CurrentUserOnly ? wxString::FromUTF8("Sim") : wxString::FromUTF8("Não"));
-        //
-        //i = list->InsertItem(0, wxString::FromUTF8("Espaço"));
-        //list->SetItem(i, 1, program.EstimatedSize);
-        //
-        //i = list->InsertItem(0, "Provedor");
-        //list->SetItem(i, 1, program.Publisher);
-
-        //i = list->InsertItem(0, wxString::FromUTF8("Versão"));
-        //list->SetItem(i, 1, program.DisplayVersion);
-
-        //i = list->InsertItem(0, "Nome");
-        //list->SetItem(i, 1, program.DisplayName);
-
-        //if (j != 1)
-        //    i = list->InsertItem(0, "");
     }
-
-    
 }
 
 void inventory::MachineForm::setupAccounts()
@@ -275,9 +242,6 @@ void inventory::MachineForm::OnBtnSync(wxCommandEvent& event)
 {
     BlockChanges();
     model->UpdateExtraction();
-
-    // wxCommandEvent evt(EVT_MACHINEFORM_SYNC, GetId());
-    // ProcessEvent(evt);
 }
 
 void inventory::MachineForm::OnAppModelMachine(wxCommandEvent& event)

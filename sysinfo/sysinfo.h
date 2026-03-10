@@ -17,9 +17,10 @@ namespace sysinfo
         LOCAL_MACHINE = 1 << 2,
         IGNORE_EMPTY_PROGRAM = 1 << 3,
         IGNORE_EMPTY_MAC = 1 << 4,
+        LOCAL_ACCOUNT_ONLY = 1 << 5,
         IGNORE_EMPTY = IGNORE_EMPTY_PROGRAM | IGNORE_EMPTY_MAC,
         ALL_SOURCES = CURRENT_USER | LOCAL_MACHINE,
-        DEFAULT = ALL_SOURCES | IGNORE_SUBSOFTWARE | IGNORE_EMPTY,
+        DEFAULT_FLAGS = ALL_SOURCES | IGNORE_SUBSOFTWARE | IGNORE_EMPTY,
     };
 
     struct program {
@@ -100,15 +101,15 @@ namespace sysinfo
     std::wstring GetLastError();
 
     bool GetDisks(std::vector<disk>* out);
-    bool GetNetworkAdapters(std::vector<network_adapter>* out, int flags = DEFAULT);
+    bool GetNetworkAdapters(std::vector<network_adapter>* out, int flags = 0);
     bool GetPhysicalMemories(std::vector<physical_memory>* out);
-    bool GetPrograms(std::vector<program>* programs, int flags = DEFAULT);
+    bool GetPrograms(std::vector<program>* programs, int flags = 0);
     bool GetMotherboard(std::wstring* name, std::wstring* manufacturer);
     bool GetProcessor(std::wstring* name, std::wstring* clock_speed);
-    bool GetMachine(machine* out, int flags = DEFAULT);
-    bool GetUserAccounts(std::vector<user_account>* out);
-    bool GetUserAccountGroups(user_accounts_by_group* map_group_key, user_accounts_by_group* map_account_key);
-    bool GetGroups(std::vector<user_group>* out);
+    bool GetMachine(machine* out, int flags = DEFAULT_FLAGS);
+    bool GetUserAccounts(std::vector<user_account>* out, int flags = 0);
+    bool GetUserAccountGroups(user_accounts_by_group* map_group_key, user_accounts_by_group* map_account_key, int flags = 0);
+    bool GetGroups(std::vector<user_group>* out, int flags = 0);
 
     cJSON* MachineToJson(const machine* data);
     bool MachineFromJString(const char* str_data, machine* out);

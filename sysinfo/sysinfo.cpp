@@ -82,7 +82,7 @@ static bool get_program(HKEY root, LPCWSTR subkey, sysinfo::program* p, int flag
     return true;
 }
 
-static bool query_wmi(LPCWSTR classname, const std::vector<LPCWSTR>& fields, std::vector<std::vector<VARIANT>>& variants) {
+static bool query_wmi(LPCWSTR classname, const std::vector<LPCWSTR>& fields, std::vector<std::vector<VARIANT>>& variants, int flags = 0) {
     if (!pSvc) {
         _error = L"IWbemServices was not initialized";
         return false;
@@ -94,6 +94,10 @@ static bool query_wmi(LPCWSTR classname, const std::vector<LPCWSTR>& fields, std
     BSTR language = SysAllocString(L"WQL");
 
     ss << L"SELECT * FROM " << classname;
+    if (flags & sysinfo::LOCAL_ACCOUNT_ONLY) {
+        ss << " WHERE LocalAccount=True";
+    }
+
     BSTR query = SysAllocString(ss.str().c_str());
 
     hr = pSvc->ExecQuery(
@@ -414,10 +418,10 @@ bool sysinfo::GetProcessor(std::wstring* name, std::wstring* clock_speed)
     return true;
 }
 
-bool sysinfo::GetGroups(std::vector<user_group>* out)
+bool sysinfo::GetGroups(std::vector<user_group>* out, int flags)
 {
     std::vector<std::vector<VARIANT>> variants;
-    if (!query_wmi(L"Win32_Group", FIELDS_GROUP, variants))
+    if (!query_wmi(L"Win32_Group", FIELDS_GROUP, variants, flags))
         return false;
 
     for (std::vector<VARIANT>& row : variants) {
@@ -436,10 +440,10 @@ bool sysinfo::GetGroups(std::vector<user_group>* out)
     return true;
 }
 
-bool sysinfo::GetUserAccounts(std::vector<user_account>* out)
+bool sysinfo::GetUserAccounts(std::vector<user_account>* out, int flags)
 {
     std::vector<std::vector<VARIANT>> variants;
-    if (!query_wmi(L"Win32_UserAccount", FIELDS_USER_ACCOUNT, variants))
+    if (!query_wmi(L"Win32_UserAccount", FIELDS_USER_ACCOUNT, variants, flags))
         return false;
 
     for (std::vector<VARIANT>& row : variants) {
@@ -464,7 +468,7 @@ bool sysinfo::GetUserAccounts(std::vector<user_account>* out)
     return true;
 }
 
-bool sysinfo::GetUserAccountGroups(user_accounts_by_group* map_group_key, user_accounts_by_group* map_account_key)
+bool sysinfo::GetUserAccountGroups(user_accounts_by_group* map_group_key, user_accounts_by_group* map_account_key, int flags)
 {
 	if (!map_group_key && !map_account_key) {
         _error = L"At least one of the parameters must be provided";
@@ -472,7 +476,7 @@ bool sysinfo::GetUserAccountGroups(user_accounts_by_group* map_group_key, user_a
     }
 
     std::vector<std::vector<VARIANT>> variants;
-    if (!query_wmi(L"Win32_GroupUser", FIELDS_GROUP_USER, variants))
+    if (!query_wmi(L"Win32_GroupUser", FIELDS_GROUP_USER, variants, flags))
         return false;
 
     //std::wcout << "GetUserAccountGroups Getting values...\n";
@@ -593,9 +597,9 @@ bool sysinfo::GetMachine(machine* out, int flags)
         && GetNetworkAdapters(&out->network_adapters, flags)
         && GetPhysicalMemories(&out->physical_memories)
         && GetPrograms(&out->programs, flags)
-        && GetGroups(&out->groups)
-        && GetUserAccounts(&out->accounts)
-        && GetUserAccountGroups(&out->group_members, nullptr);
+        && GetGroups(&out->groups, flags)
+        && GetUserAccounts(&out->accounts, flags)
+        && GetUserAccountGroups(&out->group_members, nullptr, flags);
 }
 
 cJSON* sysinfo::MachineToJson(const machine* data)

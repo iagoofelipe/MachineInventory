@@ -227,7 +227,7 @@ bool inventory::AppModel::extractMachine()
 
     queueMessage(wxString::FromUTF8("coletando dados da máquina..."));
     extraction.data = {};
-    if (!sysinfo::GetMachine(&extraction.data)) {
+    if (!sysinfo::GetMachine(&extraction.data, sysinfo::DEFAULT_FLAGS | sysinfo::LOCAL_ACCOUNT_ONLY)) {
         sysinfo::Cleanup();
         queueMessage(sysinfo::GetLastError());
         return false;
